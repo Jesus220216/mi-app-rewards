@@ -1,13 +1,11 @@
-import express from "express";
-import admin from "firebase-admin";
-import crypto from "crypto";
+const express = require("express");
+const admin = require("firebase-admin");
+const crypto = require("crypto");
 
 const app = express();
 app.use(express.json());
 
-// 🔥 FIREBASE ADMIN
-import admin from "firebase-admin";
-
+// 🔥 FIREBASE DESDE VARIABLES
 const serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
 
 admin.initializeApp({
@@ -16,39 +14,33 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// 🔐 TU SECRET (LO CONFIGURAS EN CPX)
+// 🔐 SECRET CPX
 const CPX_SECRET = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
 
-// 🚀 POSTBACK DE CPX
+// 🚀 TEST
+app.get("/", (req, res) => {
+  res.send("Servidor activo 🚀");
+});
+
+// 🚀 POSTBACK
 app.get("/cpx-postback", async (req, res) => {
-
   try {
-    const {
-      ext_user_id,
-      trans_id,
-      reward_value,
-      hash
-    } = req.query;
+    const { ext_user_id, trans_id, reward_value, hash } = req.query;
 
-    // 🔒 VALIDAR HASH (ANTIFRAUDE)
     const check = crypto
       .createHash("md5")
       .update(trans_id + CPX_SECRET)
       .digest("hex");
 
     if (check !== hash) {
-      return res.status(403).send("Fraude detectado");
+      return res.status(403).send("Fraude ❌");
     }
 
-    // 🔁 EVITAR DOBLE PAGO
     const txRef = db.collection("transactions").doc(trans_id);
     const tx = await txRef.get();
 
-    if (tx.exists) {
-      return res.send("Ya pagado");
-    }
+    if (tx.exists) return res.send("Ya pagado");
 
-    // 💰 SUMAR DINERO
     const userRef = db.collection("users").doc(ext_user_id);
 
     await userRef.update({
@@ -56,20 +48,25 @@ app.get("/cpx-postback", async (req, res) => {
       today: admin.firestore.FieldValue.increment(Number(reward_value))
     });
 
-    // 🧾 GUARDAR TRANSACCIÓN
     await txRef.set({
       user: ext_user_id,
       amount: reward_value,
       date: new Date()
     });
 
-    res.send("OK");
+    res.send("OK ✅");
 
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error");
+    res.status(500).send("Error ❌");
   }
+});
 
+// 🔥 IMPORTANTE PARA RENDER
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Servidor activo en puerto " + PORT);
 });
 
 // 🚀 SERVIDOR
