@@ -5,7 +5,13 @@ const crypto = require("crypto");
 const app = express();
 app.use(express.json());
 
-// 🔥 FIREBASE DESDE VARIABLES
+// 🔐 VALIDAR VARIABLE
+if (!process.env.FIREBASE_KEY) {
+  console.error("FIREBASE_KEY no definida ❌");
+  process.exit(1);
+}
+
+// 🔥 FIREBASE
 const serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
 
 admin.initializeApp({
@@ -14,19 +20,25 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// 🔐 SECRET CPX
-const CPX_SECRET = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
+// 🔐 SECRET CPX (mejor desde variable)
+const CPX_SECRET = process.env.POSTBACK_SECRET || "TU_SECRET";
 
-// 🚀 TEST
+// 🚀 RUTA PRINCIPAL
 app.get("/", (req, res) => {
   res.send("Servidor activo 🚀");
 });
 
-// 🚀 POSTBACK
+// 🚀 POSTBACK CPX
 app.get("/cpx-postback", async (req, res) => {
   try {
     const { ext_user_id, trans_id, reward_value, hash } = req.query;
 
+    // Validación básica
+    if (!ext_user_id || !trans_id || !reward_value || !hash) {
+      return res.status(400).send("Faltan parámetros ❌");
+    }
+
+    // 🔐 Validar hash
     const check = crypto
       .createHash("md5")
       .update(trans_id + CPX_SECRET)
@@ -43,10 +55,10 @@ app.get("/cpx-postback", async (req, res) => {
 
     const userRef = db.collection("users").doc(ext_user_id);
 
-    await userRef.update({
+    await userRef.set({
       earnings: admin.firestore.FieldValue.increment(Number(reward_value)),
       today: admin.firestore.FieldValue.increment(Number(reward_value))
-    });
+    }, { merge: true });
 
     await txRef.set({
       user: ext_user_id,
@@ -62,14 +74,9 @@ app.get("/cpx-postback", async (req, res) => {
   }
 });
 
-// 🔥 IMPORTANTE PARA RENDER
+// 🔥 PUERTO PARA RENDER
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log("Servidor activo en puerto " + PORT);
-});
-
-// 🚀 SERVIDOR
-app.listen(3000, () => {
-  console.log("Servidor activo 🚀");
 });
