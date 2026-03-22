@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  background:#050807;
+  color:white;
+  text-align:center;
+  font-family: Arial;
+}
+
+.ruleta {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 6px solid #00ff88;
+  margin: 30px auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.sector {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  background: #0f0;
+  transform-origin: 100% 100%;
+}
+
+button {
+  padding: 15px;
+  font-size: 18px;
+  background:#00ff88;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎡 Ruleta</h1>
+
+<div id="wheel" class="ruleta"></div>
+
+<button onclick="girar()">Girar</button>
+
+<audio id="spinSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+
+<script type="module">
+import { db } from "./firebase.js";
+import {
+  doc, updateDoc, increment, getDoc
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const userId = localStorage.getItem("uid");
+const userRef = doc(db, "users", userId);
+
+let girando = false;
+
+// 🎯 premios
+const premios = [0, 0.01, 0.02, 0.05, 0.1, 0];
+
+window.girar = async () => {
+
+  if (girando) return;
+  girando = true;
+
+  const snap = await getDoc(userRef);
+  const data = snap.data();
+
+  // 🚫 LIMITE DIARIO
+  if ((data.juegosHoy || 0) >= 10) {
+    alert("Límite diario alcanzado 😢");
+    girando = false;
+    return;
+  }
+
+  // 🔊 sonido
+  document.getElementById("spinSound").play();
+
+  const wheel = document.getElementById("wheel");
+  const grados = 360 * 5 + Math.random() * 360;
+
+  wheel.style.transition = "transform 3s ease-out";
+  wheel.style.transform = `rotate(${grados}deg)`;
+
+  const premio = premios[Math.floor(Math.random() * premios.length)];
+
+  setTimeout(async () => {
+
+    if (premio > 0) {
+      await updateDoc(userRef, {
+        earnings: increment(premio),
+        today: increment(premio),
+        juegosHoy: increment(1),
+        xp: increment(10)
+      });
+
+      alert("Ganaste $" + premio + " 🎉");
+    } else {
+      await updateDoc(userRef, {
+        juegosHoy: increment(1),
+        xp: increment(2)
+      });
+
+      alert("Perdiste 😢");
+    }
+
+    girando = false;
+
+  }, 3000);
+};
+</script>
+
+</body>
+</html>

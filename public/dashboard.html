@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#050807;
+  color:white;
+}
+
+/* 🔥 TITULO */
+.header {
+  text-align:center;
+  padding:30px 20px;
+}
+
+.header h1 {
+  font-size:26px;
+}
+
+.header span {
+  color:#00ff88;
+}
+
+/* 🔥 CARDS TOP */
+.top-cards {
+  display:flex;
+  gap:20px;
+  justify-content:center;
+  flex-wrap:wrap;
+  padding:20px;
+}
+
+.top-card {
+  background:#0b1a12;
+  border:1px solid #00ff88;
+  border-radius:15px;
+  padding:20px;
+  width:220px;
+  text-align:center;
+}
+
+.top-card h3 {
+  color:#00ff88;
+}
+
+/* 🔥 SCROLL APPS */
+.apps {
+  display:flex;
+  overflow-x:auto;
+  gap:10px;
+  padding:15px;
+}
+
+.app {
+  min-width:70px;
+  background:#111;
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
+  border:1px solid #222;
+}
+
+.app img {
+  width:30px;
+}
+
+/* 🔥 SECCION */
+.section {
+  text-align:center;
+  margin-top:30px;
+}
+
+.section span {
+  color:#00ff88;
+}
+
+/* 🎮 TARJETAS GRANDES */
+.big-card {
+  margin:20px;
+  background:#0b1a12;
+  border:1px solid #00ff88;
+  border-radius:15px;
+  padding:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.big-card img {
+  width:120px;
+  border-radius:10px;
+}
+
+/* BOTONES */
+.btn {
+  padding:10px 15px;
+  border:none;
+  border-radius:10px;
+  background:#00ff88;
+  cursor:pointer;
+  font-weight:bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Ingresos adicionales fáciles</h1>
+  <span>Gana hasta $50 al día</span>
+</div>
+
+<!-- CARDS TOP -->
+<div class="top-cards">
+
+  <div class="top-card" onclick="abrirJuego('ruleta')">
+    <h3>Jugar juegos</h3>
+    <p>Gana dinero</p>
+    <b>$0.50 - $120</b>
+  </div>
+
+  <div class="top-card" onclick="verAnuncio()">
+    <h3>Encuestas</h3>
+    <p>Completa tareas</p>
+    <b>$0.50 - $6</b>
+  </div>
+
+  <div class="top-card">
+    <h3>Ofertas</h3>
+    <p>Apps y pruebas</p>
+    <b>$1 - $75</b>
+  </div>
+
+</div>
+
+<!-- APPS -->
+<div class="apps">
+  <div class="app"><img src="https://img.icons8.com/color/48/netflix.png"></div>
+  <div class="app"><img src="https://img.icons8.com/color/48/paypal.png"></div>
+  <div class="app"><img src="https://img.icons8.com/color/48/amazon.png"></div>
+  <div class="app"><img src="https://img.icons8.com/color/48/walmart.png"></div>
+  <div class="app"><img src="https://img.icons8.com/color/48/spotify.png"></div>
+</div>
+
+<!-- SECCION -->
+<div class="section">
+  <h2>Más de 6 recompensas</h2>
+</div>
+
+<!-- 🎮 JUEGOS GRANDES -->
+<div class="big-card">
+  <div>
+    <h3>Gana dinero jugando</h3>
+    <p>Completa juegos y gana recompensas</p>
+    <button class="btn" onclick="abrirJuego('ruleta')">Ir</button>
+  </div>
+  <img src="https://i.imgur.com/2DhmtJ4.png">
+</div>
+
+<div class="big-card">
+  <div>
+    <h3>Empieza a ganar al instante</h3>
+    <p>Completa tareas y encuestas</p>
+    <button class="btn" onclick="verAnuncio()">Ir</button>
+  </div>
+  <img src="https://i.imgur.com/2DhmtJ4.png">
+</div>
+
+<!-- INFO USUARIO -->
+<div style="padding:20px; text-align:center;">
+  <h2 id="saldo">$0.00</h2>
+  <p>Hoy: <span id="today">$0.00</span></p>
+  <p>Referidos: <span id="refs">0</span></p>
+</div>
+
+<!-- ACCIONES -->
+<div style="padding:20px;">
+  <button class="btn" onclick="miniJuego()">🎮 Mini juego rápido</button>
+  <button class="btn" onclick="retirar()">💳 Retirar</button>
+  <button class="btn" onclick="logout()">🚪 Salir</button>
+</div>
+
+<script>
+function abrirJuego(nombre){
+  window.location.href = "game-" + nombre + ".html";
+}
+</script>
+
+<script type="module" src="dashboard.js"></script>
+
+</body>
+</html>
