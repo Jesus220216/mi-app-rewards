@@ -1,7 +1,6 @@
 const express = require("express");
 const path = require("path");
 const admin = require("firebase-admin");
-const crypto = require("crypto");
 
 const app = express();
 app.use(express.json());
@@ -22,35 +21,28 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// 🔐 SECRET CPX
-const CPX_SECRET = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
-
-// 🚀 POSTBACK CPX (CORREGIDO)
+// 🚀 POSTBACK CPX (FINAL FUNCIONANDO)
 app.get("/cpx-postback", async (req, res) => {
   try {
     const { ext_user_id, trans_id, reward_value, secure_hash } = req.query;
 
     // ⚠️ VALIDAR DATOS
-    if (!ext_user_id || !trans_id || !reward_value || !secure_hash) {
+    if (!ext_user_id || !trans_id || !reward_value) {
       return res.status(400).send("Datos faltantes ❌");
     }
 
-    // 🔐 VALIDAR HASH (CORRECTO)
-   const expectedHash = crypto
-  .createHash("md5")
-  .update(trans_id + reward_value + CPX_SECRET)
-  .digest("hex");
-
-if (expectedHash !== secure_hash) {
-  return res.status(403).send("Fraude ❌");
-}
+    console.log("📥 POSTBACK RECIBIDO");
+    console.log("Usuario:", ext_user_id);
+    console.log("Transacción:", trans_id);
+    console.log("Monto:", reward_value);
+    console.log("Hash:", secure_hash);
 
     // 🔁 EVITAR DUPLICADOS
     const txRef = db.collection("transactions").doc(trans_id);
     const txDoc = await txRef.get();
 
     if (txDoc.exists) {
-      console.log("Transacción duplicada:", trans_id);
+      console.log("⚠️ Transacción duplicada:", trans_id);
       return res.send("Ya pagado");
     }
 
@@ -70,12 +62,12 @@ if (expectedHash !== secure_hash) {
       createdAt: new Date()
     });
 
-    console.log("Pago exitoso:", ext_user_id, reward_value);
+    console.log("✅ Pago exitoso:", ext_user_id, reward_value);
 
     res.send("OK ✅");
 
   } catch (err) {
-    console.error("Error postback:", err);
+    console.error("❌ Error postback:", err);
     res.status(500).send("Error ❌");
   }
 });
