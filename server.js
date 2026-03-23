@@ -6,7 +6,7 @@ const crypto = require("crypto");
 const app = express();
 app.use(express.json());
 
-// 🔥 SERVIR FRONTEND (ESTO FALTABA)
+// 🌐 SERVIR FRONTEND
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
@@ -25,47 +25,63 @@ const db = admin.firestore();
 // 🔐 SECRET CPX
 const CPX_SECRET = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
 
-// 🚀 POSTBACK
+// 🚀 POSTBACK CPX (CORREGIDO)
 app.get("/cpx-postback", async (req, res) => {
   try {
-    const { ext_user_id, trans_id, reward_value, hash } = req.query;
+    const { ext_user_id, trans_id, reward_value, secure_hash } = req.query;
 
-    const check = crypto
+    // ⚠️ VALIDAR DATOS
+    if (!ext_user_id || !trans_id || !reward_value || !secure_hash) {
+      return res.status(400).send("Datos faltantes ❌");
+    }
+
+    // 🔐 VALIDAR HASH (CORRECTO)
+    const expectedHash = crypto
       .createHash("md5")
-      .update(trans_id + CPX_SECRET)
+      .update(ext_user_id + CPX_SECRET)
       .digest("hex");
 
-    if (check !== hash) {
+    if (expectedHash !== secure_hash) {
+      console.log("Hash inválido:", { ext_user_id, secure_hash });
       return res.status(403).send("Fraude ❌");
     }
 
+    // 🔁 EVITAR DUPLICADOS
     const txRef = db.collection("transactions").doc(trans_id);
-    const tx = await txRef.get();
+    const txDoc = await txRef.get();
 
-    if (tx.exists) return res.send("Ya pagado");
+    if (txDoc.exists) {
+      console.log("Transacción duplicada:", trans_id);
+      return res.send("Ya pagado");
+    }
 
+    // 👤 USUARIO
     const userRef = db.collection("users").doc(ext_user_id);
 
-    await userRef.update({
+    // 💰 SUMAR GANANCIA
+    await userRef.set({
       earnings: admin.firestore.FieldValue.increment(Number(reward_value)),
       today: admin.firestore.FieldValue.increment(Number(reward_value))
-    });
+    }, { merge: true });
 
+    // 🧾 GUARDAR TRANSACCIÓN
     await txRef.set({
       user: ext_user_id,
-      amount: reward_value,
-      date: new Date()
+      amount: Number(reward_value),
+      createdAt: new Date()
     });
+
+    console.log("Pago exitoso:", ext_user_id, reward_value);
 
     res.send("OK ✅");
 
   } catch (err) {
-    console.error(err);
+    console.error("Error postback:", err);
     res.status(500).send("Error ❌");
   }
 });
 
-// 🚀 SERVER
+// 🚀 SERVIDOR
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor activo en puerto " + PORT);
