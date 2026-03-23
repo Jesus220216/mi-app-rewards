@@ -51,14 +51,30 @@ app.get("/cpx-postback", async (req, res) => {
       return res.send("Ya pagado");
     }
 
-    // 👤 USUARIO
+       // 👤 USUARIO
     const userRef = db.collection("users").doc(ext_user_id);
+    const userDoc = await userRef.get();
 
-    // 💰 SUMAR GANANCIAS
+    // 💰 SUMAR AL USUARIO
     await userRef.set({
       earnings: admin.firestore.FieldValue.increment(Number(reward_value)),
       today: admin.firestore.FieldValue.increment(Number(reward_value))
     }, { merge: true });
+
+    // 🎯 BONO REFERIDO (10%)
+    const userData = userDoc.exists ? userDoc.data() : null;
+
+    if (userData && userData.referrer) {
+      const referrerRef = db.collection("users").doc(userData.referrer);
+
+      const bonus = Number(reward_value) * 0.10;
+
+      await referrerRef.set({
+        earnings: admin.firestore.FieldValue.increment(bonus)
+      }, { merge: true });
+
+      console.log("🎯 Bono referido pagado:", bonus);
+    }
 
     // 🧾 GUARDAR TRANSACCIÓN
     await txRef.set({
