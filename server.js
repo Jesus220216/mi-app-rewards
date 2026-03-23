@@ -1,3 +1,4 @@
+```js
 const express = require("express");
 const path = require("path");
 const admin = require("firebase-admin");
@@ -30,7 +31,7 @@ const db = admin.firestore();
 ========================= */
 app.get("/cpx-postback", async (req, res) => {
   try {
-    const { ext_user_id, trans_id, reward_value, secure_hash } = req.query;
+    const { ext_user_id, trans_id, reward_value } = req.query;
 
     // ⚠️ VALIDACIÓN
     if (!ext_user_id || !trans_id || !reward_value) {
@@ -51,21 +52,21 @@ app.get("/cpx-postback", async (req, res) => {
       return res.send("Ya pagado");
     }
 
-       // 👤 USUARIO
+    // 👤 USUARIO
     const userRef = db.collection("users").doc(ext_user_id);
     const userDoc = await userRef.get();
 
-    // 💰 SUMAR AL USUARIO
+    // 💰 SUMAR GANANCIA
     await userRef.set({
       earnings: admin.firestore.FieldValue.increment(Number(reward_value)),
       today: admin.firestore.FieldValue.increment(Number(reward_value))
     }, { merge: true });
 
-    // 🎯 BONO REFERIDO (10%)
+    // 🎯 BONO REFERIDO (10%) ✅ CORREGIDO
     const userData = userDoc.exists ? userDoc.data() : null;
 
-    if (userData && userData.referrer) {
-      const referrerRef = db.collection("users").doc(userData.referrer);
+    if (userData && userData.referredBy) {
+      const referrerRef = db.collection("users").doc(userData.referredBy);
 
       const bonus = Number(reward_value) * 0.10;
 
@@ -94,7 +95,7 @@ app.get("/cpx-postback", async (req, res) => {
 });
 
 /* =========================
-💳 RETIROS (PRO)
+💳 RETIROS
 ========================= */
 app.post("/withdraw", async (req, res) => {
   try {
@@ -113,7 +114,7 @@ app.post("/withdraw", async (req, res) => {
 
     const data = userDoc.data();
 
-    // 💰 VALIDAR MONTO MÍNIMO
+    // 💰 VALIDAR MÍNIMO
     if ((data.earnings || 0) < 5) {
       return res.send("Mínimo $5 para retirar");
     }
@@ -126,7 +127,7 @@ app.post("/withdraw", async (req, res) => {
       createdAt: new Date()
     });
 
-    // 🔄 RESETEAR BALANCE
+    // 🔄 RESET
     await userRef.update({
       earnings: 0
     });
@@ -142,16 +143,17 @@ app.post("/withdraw", async (req, res) => {
 });
 
 /* =========================
-🧪 TEST ENDPOINT
+🧪 TEST
 ========================= */
 app.get("/test", (req, res) => {
   res.send("Servidor funcionando 🚀");
 });
 
 /* =========================
-🚀 INICIAR SERVIDOR
+🚀 SERVIDOR
 ========================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Servidor activo en puerto " + PORT);
 });
+```
