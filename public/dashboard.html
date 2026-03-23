@@ -255,6 +255,27 @@ onSnapshot(userRef, (docSnap) => {
     document.getElementById("today2").innerText = "$" + (data.today || 0);
   }
 });
+<script type="module">
+import { auth } from "./firebase.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+window.logout = async function() {
+  try {
+    await signOut(auth);
+
+    // limpiar datos locales
+    localStorage.removeItem("cpx_user_id");
+
+    alert("Sesión cerrada 👋");
+
+    // volver al login
+    window.location.href = "index.html";
+
+  } catch (error) {
+    alert("Error al cerrar sesión");
+    console.error(error);
+  }
+};
 </script>
 
 </body>
