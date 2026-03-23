@@ -31,7 +31,7 @@ function getUserId() {
 const userId = getUserId();
 const userRef = doc(db, "users", userId);
 
-const userRef = doc(db, "users", userId);
+
 
 // 🔥 CREAR USUARIO SI NO EXISTE
 import { getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
