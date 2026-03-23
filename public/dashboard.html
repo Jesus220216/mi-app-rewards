@@ -84,7 +84,6 @@ body {
   font-weight:bold;
 }
 </style>
-
 </head>
 
 <body>
@@ -94,9 +93,7 @@ body {
   <span>Gana hasta $50 al día</span>
 </div>
 
-<!-- CARDS -->
 <div class="top-cards">
-
   <div class="top-card" onclick="abrirJuego('ruleta')">
     <h3>Jugar juegos</h3>
     <p>$0.50 - $120</p>
@@ -111,10 +108,8 @@ body {
     <h3>Ofertas</h3>
     <p>$1 - $75</p>
   </div>
-
 </div>
 
-<!-- APPS -->
 <div class="apps">
   <div class="app"><img src="https://img.icons8.com/color/48/netflix.png"></div>
   <div class="app"><img src="https://img.icons8.com/color/48/paypal.png"></div>
@@ -125,7 +120,6 @@ body {
   <h2>Más recompensas</h2>
 </div>
 
-<!-- TARJETAS -->
 <div class="big-card">
   <div>
     <h3>Gana dinero jugando</h3>
@@ -142,13 +136,13 @@ body {
   <img src="https://i.imgur.com/2DhmtJ4.png">
 </div>
 
-<!-- 💰 SALDO -->
+<!-- SALDO -->
 <div style="text-align:center; margin-top:20px;">
   <h2 id="saldo">$0.00</h2>
   <p>Hoy: <span id="today">$0.00</span></p>
 </div>
 
-<!-- 🎯 REFERIDOS -->
+<!-- REFERIDOS -->
 <div style="text-align:center; margin-top:20px;">
   <p>Tu link de referido:</p>
   <input id="refLink" style="width:90%; padding:10px; border-radius:8px;" readonly>
@@ -156,20 +150,19 @@ body {
   <button class="btn" onclick="copiarRef()">📋 Copiar</button>
 </div>
 
-<!-- 📊 STATS -->
+<!-- STATS -->
 <div style="text-align:center; margin-top:20px;">
   <h3>Estadísticas</h3>
   <p>Total: <span id="total">$0</span></p>
   <p>Hoy: <span id="today2">$0</span></p>
 </div>
 
-<!-- BOTONES -->
 <div style="text-align:center; margin:30px;">
   <button class="btn" onclick="retirar()">💳 Retirar</button>
   <button class="btn" onclick="logout()">🚪 Salir</button>
 </div>
 
-<!-- 🔐 CPX -->
+<!-- CPX -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script>
@@ -189,32 +182,20 @@ function abrirEncuestas() {
     const user_id = getUserId();
     const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
 
-    const cpx = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
-
-    const fallback = "https://wall.adgem.com"; // oferta alternativa
+    const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
 
     document.body.innerHTML = `
-        <div style="position:fixed;top:10px;left:10px;z-index:999;">
-            <button onclick="location.reload()">⬅ Volver</button>
-        </div>
-
-        <iframe src="${cpx}" style="width:100%;height:100vh;border:none;"></iframe>
-
-        <div style="position:fixed;bottom:10px;width:100%;text-align:center;">
-            <button onclick="window.open('${fallback}','_blank')" class="btn">
-                🔥 Más ofertas
-            </button>
-        </div>
+        <button onclick="location.reload()">⬅ Volver</button>
+        <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
     `;
 }
 
 // REFERIDOS
 const myId = getUserId();
-const refLink = `${window.location.origin}?ref=${myId}`;
-document.getElementById("refLink").value = refLink;
+document.getElementById("refLink").value = `${window.location.origin}?ref=${myId}`;
 
 function copiarRef(){
-  navigator.clipboard.writeText(refLink);
+  navigator.clipboard.writeText(document.getElementById("refLink").value);
   alert("Copiado 🚀");
 }
 
@@ -225,7 +206,6 @@ function retirar(){
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ user_id: getUserId() })
   })
-  .then(res=>res.text())
   .then(()=> alert("Solicitud enviada 💰"));
 }
 
@@ -234,10 +214,10 @@ function abrirJuego(nombre){
 }
 </script>
 
-<!-- 🔥 FIREBASE REALTIME -->
+<!-- FIREBASE REALTIME + BONUS -->
 <script type="module">
-import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
@@ -249,41 +229,44 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const userId = localStorage.getItem("cpx_user_id");
+const userRef = doc(db, "users", userId);
 
+// 🔄 REALTIME
+onSnapshot(userRef, (docSnap) => {
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+
+    document.getElementById("saldo").innerText = "$" + (data.earnings || 0).toFixed(2);
+    document.getElementById("today").innerText = "$" + (data.today || 0).toFixed(2);
+    document.getElementById("total").innerText = "$" + (data.earnings || 0);
+    document.getElementById("today2").innerText = "$" + (data.today || 0);
+  }
+});
+
+// 🎁 BONUS DIARIO (BIEN HECHO)
 const today = new Date().toDateString();
 const last = localStorage.getItem("daily_bonus");
 
 if (last !== today) {
-  const bonus = 0.50;
-
-  const ref = doc(db, "users", userId);
-
-  await updateDoc(ref, {
-    earnings: Number(bonus)
+  await updateDoc(userRef, {
+    earnings: increment(0.50),
+    today: increment(0.50)
   });
 
   localStorage.setItem("daily_bonus", today);
-
-  alert("🎁 Bono diario: $" + bonus);
+  alert("🎁 Bono diario recibido");
 }
 </script>
-</script>
 
-<!-- 🚪 LOGOUT -->
+<!-- LOGOUT -->
 <script type="module">
 import { auth } from "./firebase.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 window.logout = async function() {
-  try {
-    await signOut(auth);
-    localStorage.removeItem("cpx_user_id");
-    alert("Sesión cerrada 👋");
-    window.location.href = "index.html";
-  } catch (error) {
-    alert("Error al cerrar sesión");
-    console.error(error);
-  }
+  await signOut(auth);
+  localStorage.removeItem("cpx_user_id");
+  window.location.href = "index.html";
 };
 </script>
 
