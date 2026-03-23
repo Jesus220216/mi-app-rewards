@@ -123,7 +123,6 @@ input {
 
     <button id="loginBtn" class="btn">Entrar</button>
     <button id="registerBtn" class="btn">Registrarse</button>
-    
 </div>
 
 <div class="loader" id="loader">Cargando...</div>
@@ -138,28 +137,29 @@ function togglePass() {
     input.type = input.type === "password" ? "text" : "password";
 }
 
-// 📋 Referido
-function copyRef() {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get("ref");
-
-    if (ref) {
-        document.getElementById("referralCode").value = ref;
-        alert("Código aplicado: " + ref);
-    } else {
-        alert("No hay código en el link");
-    }
-}
-
-// auto detectar referido
+// 🎯 GUARDAR REFERIDO AUTOMÁTICO
 window.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
 
     if (ref) {
+        localStorage.setItem("referrer_id", ref);
         document.getElementById("referralCode").value = ref;
+        console.log("Referido guardado:", ref);
     }
 });
+
+// 📋 Mostrar referido manual
+function copyRef() {
+    const ref = localStorage.getItem("referrer_id");
+
+    if (ref) {
+        document.getElementById("referralCode").value = ref;
+        alert("Código aplicado: " + ref);
+    } else {
+        alert("No hay código");
+    }
+}
 
 // loader
 const showLoader = () => document.getElementById("loader").style.display = "flex";
@@ -167,6 +167,10 @@ const hideLoader = () => document.getElementById("loader").style.display = "none
 
 // botones
 document.addEventListener("DOMContentLoaded", () => {
+
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+
     loginBtn.addEventListener("click", () => {
         showLoader();
         setTimeout(hideLoader, 2000);
@@ -176,49 +180,8 @@ document.addEventListener("DOMContentLoaded", () => {
         showLoader();
         setTimeout(hideLoader, 2000);
     });
+
 });
-
-// 🔐 CPX CONFIG
-const CPX_APP_ID = "32070";
-const CPX_API_KEY = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
-
-// user id
-function getUserId() {
-    let id = localStorage.getItem("cpx_user_id");
-    if (!id) {
-        id = "srv-" + Math.random().toString(36).substring(2, 15);
-        localStorage.setItem("cpx_user_id", id);
-    }
-    return id;
-}
-
-// hash
-async function generateHash(user_id) {
-    const msg = user_id + CPX_API_KEY;
-    const buffer = new TextEncoder().encode(msg);
-    const hashBuffer = await crypto.subtle.digest("MD5", buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-// abrir encuestas
-async function abrirEncuestas() {
-    const user_id = getUserId();
-    const hash = await generateHash(user_id);
-
-    const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
-
-    document.body.innerHTML = `
-        <div style="position:fixed;top:10px;left:10px;z-index:999;">
-            <button onclick="location.reload()">⬅ Volver</button>
-        </div>
-
-        <iframe 
-            src="${url}" 
-            style="width:100%; height:100vh; border:none;">
-        </iframe>
-    `;
-}
 </script>
 
 </body>
