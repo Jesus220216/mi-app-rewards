@@ -200,8 +200,10 @@ async function abrirEncuestas() {
     const user_id = getUserId();
     const hash = await generateHash(user_id);
 
-    const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
+    const url = `https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${user_id}&secure_hash=${hash}`;
 
+    window.location.href = url; // 🔥 mejor que iframe
+}
     // 👉 CARGA CPX EN PANTALLA COMPLETA
     document.body.innerHTML = `
         <div style="position:fixed;top:10px;left:10px;z-index:999;">
