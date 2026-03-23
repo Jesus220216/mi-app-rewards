@@ -169,9 +169,7 @@ body {
   <button class="btn" onclick="logout()">🚪 Salir</button>
 </div>
 
-<!-- ===================== -->
-<!-- 🔐 CPX + FUNCIONES -->
-<!-- ===================== -->
+<!-- 🔐 CPX -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script>
@@ -199,7 +197,7 @@ function abrirEncuestas() {
     `;
 }
 
-// 🎯 REFERIDOS
+// REFERIDOS
 const myId = getUserId();
 const refLink = `${window.location.origin}?ref=${myId}`;
 document.getElementById("refLink").value = refLink;
@@ -209,7 +207,7 @@ function copiarRef(){
   alert("Copiado 🚀");
 }
 
-// 💳 RETIRO
+// RETIRO
 function retirar(){
   fetch("/withdraw", {
     method:"POST",
@@ -225,9 +223,7 @@ function abrirJuego(nombre){
 }
 </script>
 
-<!-- ===================== -->
 <!-- 🔥 FIREBASE REALTIME -->
-<!-- ===================== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -235,14 +231,13 @@ import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasej
 const firebaseConfig = {
     apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
     authDomain: "rutarizador-v12.firebaseapp.com",
-    projectId: "rutarizador-v12",
+    projectId: "rutarizador-v12"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const userId = localStorage.getItem("cpx_user_id");
-
 const userRef = doc(db, "users", userId);
 
 onSnapshot(userRef, (docSnap) => {
@@ -255,6 +250,9 @@ onSnapshot(userRef, (docSnap) => {
     document.getElementById("today2").innerText = "$" + (data.today || 0);
   }
 });
+</script>
+
+<!-- 🚪 LOGOUT -->
 <script type="module">
 import { auth } from "./firebase.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
@@ -262,15 +260,9 @@ import { signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-aut
 window.logout = async function() {
   try {
     await signOut(auth);
-
-    // limpiar datos locales
     localStorage.removeItem("cpx_user_id");
-
     alert("Sesión cerrada 👋");
-
-    // volver al login
     window.location.href = "index.html";
-
   } catch (error) {
     alert("Error al cerrar sesión");
     console.error(error);
