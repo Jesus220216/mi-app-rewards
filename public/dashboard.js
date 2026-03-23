@@ -9,7 +9,7 @@ import {
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// FIREBASE
+// 🔥 FIREBASE CONFIG
 const app = initializeApp({
   apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
   authDomain: "rutarizador-v12.firebaseapp.com",
@@ -18,7 +18,7 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-// USER
+// 👤 USER ID
 function getUserId() {
   let id = localStorage.getItem("cpx_user_id");
   if (!id) {
@@ -31,26 +31,29 @@ function getUserId() {
 const userId = getUserId();
 const userRef = doc(db, "users", userId);
 
+// 🔥 INIT USER (async seguro)
+async function initUser() {
+  const snap = await getDoc(userRef);
 
-
-// 🔥 CREAR USUARIO SI NO EXISTE
-import { getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const snap = await getDoc(userRef);
-
-if (!snap.exists()) {
-  await setDoc(userRef, {
-    earnings: 0,
-    today: 0,
-    createdAt: new Date()
-  });
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      earnings: 0,
+      today: 0,
+      createdAt: new Date()
+    });
+  }
 }
 
-// REFERIDO
+await initUser();
+
+// 🔗 REFERIDO
 document.getElementById("refLink").value =
   `${window.location.origin}?ref=${userId}`;
 
-// FUNCIONES (IMPORTANTE: window.)
+// ============================
+// 🚀 FUNCIONES GLOBALES
+// ============================
+
 window.abrirEncuestas = function () {
   const hash = CryptoJS.MD5(userId + "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS").toString();
 
@@ -75,11 +78,11 @@ window.abrirJuego = function (nombre) {
 
 window.copiarRef = function () {
   navigator.clipboard.writeText(document.getElementById("refLink").value);
-  alert("Copiado 🚀");
+  showToast("Copiado 🚀");
 };
 
 window.retirar = function () {
-  alert("Solicitud enviada 💰");
+  showToast("Solicitud enviada 💰");
 };
 
 window.logout = function () {
@@ -87,7 +90,10 @@ window.logout = function () {
   window.location.href = "index.html";
 };
 
-// REALTIME
+// ============================
+// 🔄 REALTIME FIREBASE
+// ============================
+
 onSnapshot(userRef, (snap) => {
   if (snap.exists()) {
     const data = snap.data();
@@ -98,13 +104,16 @@ onSnapshot(userRef, (snap) => {
     document.getElementById("saldo").innerText = "$" + earnings;
     document.getElementById("today").innerText = "$" + today;
     document.getElementById("today2").innerText = "$" + today;
-    document.getElementById("total").innerText = "$" + data.earnings;
+    document.getElementById("total").innerText = "$" + earnings;
 
     showToast("+" + today + " 💰");
   }
 });
 
-// BONUS DIARIO
+// ============================
+// 🎁 BONUS DIARIO
+// ============================
+
 const todayDate = new Date().toDateString();
 const last = localStorage.getItem("daily_bonus");
 
@@ -117,10 +126,33 @@ if (last !== todayDate) {
   localStorage.setItem("daily_bonus", todayDate);
 }
 
-// TOAST
+// ============================
+// 🔔 TOAST NOTIFICACIÓN
+// ============================
+
 function showToast(msg) {
-  const t = document.getElementById("toast");
+  let t = document.getElementById("toast");
+
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "toast";
+    t.style.position = "fixed";
+    t.style.bottom = "20px";
+    t.style.right = "20px";
+    t.style.background = "#00ff88";
+    t.style.color = "#000";
+    t.style.padding = "12px 18px";
+    t.style.borderRadius = "12px";
+    t.style.boxShadow = "0 0 15px rgba(0,255,136,0.5)";
+    t.style.opacity = "0";
+    t.style.transition = "0.3s";
+    document.body.appendChild(t);
+  }
+
   t.innerText = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 3000);
+  t.style.opacity = "1";
+
+  setTimeout(() => {
+    t.style.opacity = "0";
+  }, 2500);
 }
