@@ -38,6 +38,11 @@ body {
   width:220px;
   text-align:center;
   cursor:pointer;
+  transition:0.3s;
+}
+
+.top-card:hover {
+  transform:scale(1.05);
 }
 
 .apps {
@@ -56,9 +61,7 @@ body {
   border:1px solid #222;
 }
 
-.app img {
-  width:30px;
-}
+.app img { width:30px; }
 
 .section {
   text-align:center;
@@ -95,11 +98,13 @@ body {
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
   <h1>Ingresos adicionales fáciles</h1>
   <span>Gana hasta $50 al día</span>
 </div>
 
+<!-- CARDS -->
 <div class="top-cards">
 
   <div class="top-card" onclick="abrirJuego('ruleta')">
@@ -108,14 +113,13 @@ body {
     <b>$0.50 - $120</b>
   </div>
 
-  <!-- 🔥 ESTE YA FUNCIONA -->
   <div class="top-card" onclick="abrirEncuestas()">
     <h3>Encuestas</h3>
     <p>Completa tareas</p>
     <b>$0.50 - $6</b>
   </div>
 
-  <div class="top-card">
+  <div class="top-card" onclick="abrirEncuestas()">
     <h3>Ofertas</h3>
     <p>Apps y pruebas</p>
     <b>$1 - $75</b>
@@ -123,6 +127,7 @@ body {
 
 </div>
 
+<!-- APPS -->
 <div class="apps">
   <div class="app"><img src="https://img.icons8.com/color/48/netflix.png"></div>
   <div class="app"><img src="https://img.icons8.com/color/48/paypal.png"></div>
@@ -135,6 +140,7 @@ body {
   <h2>Más de 6 recompensas</h2>
 </div>
 
+<!-- TARJETAS -->
 <div class="big-card">
   <div>
     <h3>Gana dinero jugando</h3>
@@ -144,7 +150,6 @@ body {
   <img src="https://i.imgur.com/2DhmtJ4.png">
 </div>
 
-<!-- 🔥 BOTÓN ENCUESTAS ARREGLADO -->
 <div class="big-card">
   <div>
     <h3>Empieza a ganar al instante</h3>
@@ -154,29 +159,35 @@ body {
   <img src="https://i.imgur.com/2DhmtJ4.png">
 </div>
 
+<!-- USUARIO -->
 <div style="padding:20px; text-align:center;">
   <h2 id="saldo">$0.00</h2>
   <p>Hoy: <span id="today">$0.00</span></p>
   <p>Referidos: <span id="refs">0</span></p>
 </div>
 
-<div style="padding:20px;">
-  <button class="btn" onclick="miniJuego()">🎮 Mini juego rápido</button>
+<!-- BOTONES -->
+<div style="padding:20px; text-align:center;">
+  <button class="btn" onclick="miniJuego()">🎮 Mini juego</button>
   <button class="btn" onclick="retirar()">💳 Retirar</button>
   <button class="btn" onclick="logout()">🚪 Salir</button>
 </div>
 
 <script>
+// =======================
 // 🎮 JUEGOS
+// =======================
 function abrirJuego(nombre){
   window.location.href = "game-" + nombre + ".html";
 }
 
-// 🔐 CONFIG CPX
+// =======================
+// 🔐 CPX CONFIG PRO
+// =======================
 const CPX_APP_ID = "32070";
 const CPX_API_KEY = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
 
-// 👤 USER ID (IMPORTANTE)
+// user id real
 function getUserId() {
     let id = localStorage.getItem("cpx_user_id");
     if (!id) {
@@ -186,37 +197,31 @@ function getUserId() {
     return id;
 }
 
-// 🔑 GENERAR HASH (CPX)
-async function generateHash(user_id) {
-    const msg = user_id + CPX_API_KEY;
-    const buffer = new TextEncoder().encode(msg);
-    const hashBuffer = await crypto.subtle.digest("MD5", buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+// md5
+function md5(string) {
+    return CryptoJS.MD5(string).toString();
 }
 
-// 🚀 ABRIR ENCUESTAS (🔥 CLAVE)
-async function abrirEncuestas() {
+// abrir CPX
+function abrirEncuestas() {
     const user_id = getUserId();
-    const hash = await generateHash(user_id);
+    const hash = md5(user_id + CPX_API_KEY);
 
-    const url = `https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${user_id}&secure_hash=${hash}`;
+    const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
 
-    window.location.href = url; // 🔥 mejor que iframe
-}
-    // 👉 CARGA CPX EN PANTALLA COMPLETA
+    // pantalla completa tipo app
     document.body.innerHTML = `
         <div style="position:fixed;top:10px;left:10px;z-index:999;">
             <button onclick="location.reload()">⬅ Volver</button>
         </div>
 
-        <iframe 
-            src="${url}" 
-            style="width:100%; height:100vh; border:none;">
-        </iframe>
+        <iframe src="${url}" style="width:100%; height:100vh; border:none;"></iframe>
     `;
 }
 </script>
+
+<!-- LIBRERIA MD5 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script type="module" src="dashboard.js"></script>
 
