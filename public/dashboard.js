@@ -148,3 +148,10 @@ window.logout = async () => {
     alert("Error al cerrar sesión");
   }
 };
+import { auth } from "./firebase.js";
+
+auth.onAuthStateChanged((user)=>{
+  if(user){
+    window.initCPX(user.uid); // 🔥 conecta encuestas
+  }
+});
