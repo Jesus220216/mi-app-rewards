@@ -260,14 +260,78 @@ if (last !== today) {
 
 <!-- LOGOUT -->
 <script type="module">
-import { auth } from "./firebase.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-window.logout = async function() {
-  await signOut(auth);
-  localStorage.removeItem("cpx_user_id");
-  window.location.href = "index.html";
-};
+const auth = getAuth();
+
+auth.onAuthStateChanged((user) => {
+  if (!user) return;
+
+  const userId = user.uid;
+  const email = user.email || "";
+
+  // 🔐 (opcional) hash de seguridad
+  const secureHash = ""; // lo puedes generar en backend luego
+
+  const script1 = {
+    div_id: "fullscreen",
+    theme_style: 1,
+    order_by: 2,
+    limit_surveys: 7
+  };
+
+  const script4 = {
+    div_id: "notification",
+    theme_style: 4,
+    position: 5
+  };
+
+  const script5 = {
+    div_id: "notification2",
+    theme_style: 4,
+    position: 6,
+    link: `https://wall.cpx-research.com/index.php?app_id=32070&ext_user_id=${userId}`,
+    newtab: true
+  };
+
+  const config = {
+    general_config: {
+      app_id: 32070,
+      ext_user_id: userId,
+      email: email,
+      username: userId,
+      secure_hash: secureHash
+    },
+
+    style_config: {
+      text_color: "#00ffcc",
+      survey_box: {
+        topbar_background_color: "#00ffcc",
+        box_background_color: "#0f172a",
+        rounded_borders: true,
+        stars_filled: "#00ffcc"
+      }
+    },
+
+    script_config: [script1, script4, script5],
+
+    debug: false,
+    useIFrame: true,
+
+    functions: {
+      get_transaction: (tx) => {
+        console.log("💰 Ganancia detectada:", tx);
+      }
+    }
+  };
+
+  window.config = config;
+
+  // 🔥 cargar script CPX
+  const s = document.createElement("script");
+  s.src = "https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js";
+  document.body.appendChild(s);
+});
 </script>
 
 </body>
