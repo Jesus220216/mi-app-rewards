@@ -208,6 +208,15 @@ function retirar(){
   })
   .then(()=> alert("Solicitud enviada 💰"));
 }
+  function reclamarBonus(){
+  fetch("/daily-bonus", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ user_id: localStorage.getItem("cpx_user_id") })
+  })
+  .then(res => res.text())
+  .then(msg => alert(msg));
+}
 
 function abrirJuego(nombre){
   window.location.href = "game-" + nombre + ".html";
