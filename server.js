@@ -36,15 +36,14 @@ app.get("/cpx-postback", async (req, res) => {
     }
 
     // 🔐 VALIDAR HASH (CORRECTO)
-    const expectedHash = crypto
+   const expectedHash = crypto
   .createHash("md5")
   .update(trans_id + reward_value + CPX_SECRET)
   .digest("hex");
 
-    if (expectedHash !== secure_hash) {
-      console.log("Hash inválido:", { ext_user_id, secure_hash });
-      return res.status(403).send("Fraude ❌");
-    }
+if (expectedHash !== secure_hash) {
+  return res.status(403).send("Fraude ❌");
+}
 
     // 🔁 EVITAR DUPLICADOS
     const txRef = db.collection("transactions").doc(trans_id);
