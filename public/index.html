@@ -17,12 +17,8 @@ body {
     color: #fff;
 }
 
-/* FULLSCREEN APP */
-body, html {
-    overflow: hidden;
-}
+body, html { overflow: hidden; }
 
-/* CARD */
 .card {
     width: 340px;
     padding: 30px;
@@ -40,7 +36,6 @@ body, html {
 }
 
 .icon { font-size: 32px; color: #ffcc00; }
-
 h1 { color: #00e5ff; }
 
 label {
@@ -61,10 +56,7 @@ input {
     color:white;
 }
 
-/* PASSWORD TOGGLE */
-.password-box {
-    position: relative;
-}
+.password-box { position: relative; }
 
 .toggle {
     position:absolute;
@@ -76,7 +68,6 @@ input {
     color:#00e5ff;
 }
 
-/* BUTTON */
 .btn {
     width:100%;
     margin-top:15px;
@@ -87,7 +78,6 @@ input {
     cursor:pointer;
 }
 
-/* COPY BTN */
 .copy-btn {
     margin-top:5px;
     font-size:12px;
@@ -95,7 +85,6 @@ input {
     color:#00e5ff;
 }
 
-/* LOADER */
 .loader {
     position:fixed;
     top:0;
@@ -134,7 +123,8 @@ input {
 
     <button id="loginBtn" class="btn">Entrar</button>
     <button id="registerBtn" class="btn">Registrarse</button>
-    <button onclick="ruleta()">Ruleta 🎡</button>
+    <button class="btn" onclick="ruleta()">Ruleta 🎡</button>
+    <button class="btn" onclick="abrirEncuestas()">Ganar dinero 💰</button>
 </div>
 
 <div class="loader" id="loader">Cargando...</div>
@@ -143,14 +133,14 @@ input {
 <script type="module" src="authCheck.js"></script>
 
 <script>
-// 👁 Mostrar / ocultar contraseña
-window.togglePass = () => {
+// 👁 Mostrar contraseña
+function togglePass() {
     const input = document.getElementById("loginPassword");
     input.type = input.type === "password" ? "text" : "password";
-};
+}
 
-// 📋 Copiar referido desde URL
-window.copyRef = () => {
+// 📋 Referido
+function copyRef() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
 
@@ -160,9 +150,9 @@ window.copyRef = () => {
     } else {
         alert("No hay código en el link");
     }
-};
+}
 
-// 🔗 AUTO DETECTAR ?ref=
+// auto detectar referido
 window.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
@@ -172,24 +162,64 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 🎨 LOADER cuando login
+// loader
 const showLoader = () => document.getElementById("loader").style.display = "flex";
 const hideLoader = () => document.getElementById("loader").style.display = "none";
 
-// interceptar botones
+// botones
 document.addEventListener("DOMContentLoaded", () => {
-
     loginBtn.addEventListener("click", () => {
         showLoader();
-        setTimeout(() => hideLoader(), 2000);
+        setTimeout(hideLoader, 2000);
     });
 
     registerBtn.addEventListener("click", () => {
         showLoader();
-        setTimeout(() => hideLoader(), 2000);
+        setTimeout(hideLoader, 2000);
     });
-
 });
+
+// 🔐 CPX CONFIG
+const CPX_APP_ID = "32070";
+const CPX_API_KEY = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
+
+// user id
+function getUserId() {
+    let id = localStorage.getItem("cpx_user_id");
+    if (!id) {
+        id = "srv-" + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem("cpx_user_id", id);
+    }
+    return id;
+}
+
+// hash
+async function generateHash(user_id) {
+    const msg = user_id + CPX_API_KEY;
+    const buffer = new TextEncoder().encode(msg);
+    const hashBuffer = await crypto.subtle.digest("MD5", buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// abrir encuestas
+async function abrirEncuestas() {
+    const user_id = getUserId();
+    const hash = await generateHash(user_id);
+
+    const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
+
+    document.body.innerHTML = `
+        <div style="position:fixed;top:10px;left:10px;z-index:999;">
+            <button onclick="location.reload()">⬅ Volver</button>
+        </div>
+
+        <iframe 
+            src="${url}" 
+            style="width:100%; height:100vh; border:none;">
+        </iframe>
+    `;
+}
 </script>
 
 </body>
