@@ -5,14 +5,18 @@ const admin = require("firebase-admin");
 const app = express();
 app.use(express.json());
 
-// 🌐 SERVIR FRONTEND
+/* =========================
+🌐 SERVIR FRONTEND
+========================= */
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// 🔥 FIREBASE DESDE VARIABLES
+/* =========================
+🔥 FIREBASE
+========================= */
 const serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
 
 admin.initializeApp({
@@ -21,21 +25,22 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// 🚀 POSTBACK CPX (FINAL FUNCIONANDO)
+/* =========================
+🚀 POSTBACK CPX (PRO)
+========================= */
 app.get("/cpx-postback", async (req, res) => {
   try {
     const { ext_user_id, trans_id, reward_value, secure_hash } = req.query;
 
-    // ⚠️ VALIDAR DATOS
+    // ⚠️ VALIDACIÓN
     if (!ext_user_id || !trans_id || !reward_value) {
       return res.status(400).send("Datos faltantes ❌");
     }
 
-    console.log("📥 POSTBACK RECIBIDO");
-    console.log("Usuario:", ext_user_id);
-    console.log("Transacción:", trans_id);
-    console.log("Monto:", reward_value);
-    console.log("Hash:", secure_hash);
+    console.log("📥 POSTBACK CPX");
+    console.log("👤 Usuario:", ext_user_id);
+    console.log("💳 Transacción:", trans_id);
+    console.log("💰 Monto:", reward_value);
 
     // 🔁 EVITAR DUPLICADOS
     const txRef = db.collection("transactions").doc(trans_id);
@@ -49,7 +54,7 @@ app.get("/cpx-postback", async (req, res) => {
     // 👤 USUARIO
     const userRef = db.collection("users").doc(ext_user_id);
 
-    // 💰 SUMAR GANANCIA
+    // 💰 SUMAR GANANCIAS
     await userRef.set({
       earnings: admin.firestore.FieldValue.increment(Number(reward_value)),
       today: admin.firestore.FieldValue.increment(Number(reward_value))
@@ -62,18 +67,75 @@ app.get("/cpx-postback", async (req, res) => {
       createdAt: new Date()
     });
 
-    console.log("✅ Pago exitoso:", ext_user_id, reward_value);
+    console.log("✅ Pago agregado correctamente");
 
-    res.send("OK ✅");
+    res.send("OK");
 
   } catch (err) {
-    console.error("❌ Error postback:", err);
-    res.status(500).send("Error ❌");
+    console.error("❌ Error en postback:", err);
+    res.status(500).send("Error");
   }
 });
 
-// 🚀 SERVIDOR
+/* =========================
+💳 RETIROS (PRO)
+========================= */
+app.post("/withdraw", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).send("Falta user_id");
+    }
+
+    const userRef = db.collection("users").doc(user_id);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send("Usuario no encontrado");
+    }
+
+    const data = userDoc.data();
+
+    // 💰 VALIDAR MONTO MÍNIMO
+    if ((data.earnings || 0) < 5) {
+      return res.send("Mínimo $5 para retirar");
+    }
+
+    // 🧾 CREAR SOLICITUD
+    await db.collection("withdrawals").add({
+      user: user_id,
+      amount: data.earnings,
+      status: "pending",
+      createdAt: new Date()
+    });
+
+    // 🔄 RESETEAR BALANCE
+    await userRef.update({
+      earnings: 0
+    });
+
+    console.log("💸 Retiro solicitado:", user_id);
+
+    res.send("Retiro solicitado");
+
+  } catch (err) {
+    console.error("❌ Error en retiro:", err);
+    res.status(500).send("Error");
+  }
+});
+
+/* =========================
+🧪 TEST ENDPOINT
+========================= */
+app.get("/test", (req, res) => {
+  res.send("Servidor funcionando 🚀");
+});
+
+/* =========================
+🚀 INICIAR SERVIDOR
+========================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("Servidor activo en puerto " + PORT);
+  console.log("🚀 Servidor activo en puerto " + PORT);
 });
