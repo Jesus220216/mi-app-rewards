@@ -6,83 +6,48 @@
 <title>Dashboard</title>
 
 <style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#050807;
-  color:white;
-}
-
-.header {
-  text-align:center;
-  padding:30px 20px;
-}
-
+body {margin:0;font-family:Arial;background:#050807;color:white;}
+.header {text-align:center;padding:30px 20px;}
 .header span { color:#00ff88; }
 
-.top-cards {
-  display:flex;
-  gap:20px;
-  justify-content:center;
-  flex-wrap:wrap;
-  padding:20px;
-}
-
+.top-cards {display:flex;gap:20px;justify-content:center;flex-wrap:wrap;padding:20px;}
 .top-card {
-  background:#0b1a12;
-  border:1px solid #00ff88;
-  border-radius:15px;
-  padding:20px;
-  width:220px;
-  text-align:center;
-  cursor:pointer;
+  background:#0b1a12;border:1px solid #00ff88;border-radius:15px;
+  padding:20px;width:220px;text-align:center;cursor:pointer;
 }
 
-.apps {
-  display:flex;
-  overflow-x:auto;
-  gap:10px;
-  padding:15px;
-}
-
-.app {
-  min-width:70px;
-  background:#111;
-  border-radius:10px;
-  padding:10px;
-}
-
+.apps {display:flex;overflow-x:auto;gap:10px;padding:15px;}
+.app {min-width:70px;background:#111;border-radius:10px;padding:10px;}
 .app img { width:30px; }
 
-.section {
-  text-align:center;
-  margin-top:30px;
-}
+.section {text-align:center;margin-top:30px;}
 
 .big-card {
-  margin:20px;
-  background:#0b1a12;
-  border:1px solid #00ff88;
-  border-radius:15px;
-  padding:20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  margin:20px;background:#0b1a12;border:1px solid #00ff88;
+  border-radius:15px;padding:20px;display:flex;
+  justify-content:space-between;align-items:center;
 }
 
-.big-card img {
-  width:120px;
-  border-radius:10px;
-}
+.big-card img {width:120px;border-radius:10px;}
 
 .btn {
-  padding:10px 15px;
-  border:none;
-  border-radius:10px;
-  background:#00ff88;
-  cursor:pointer;
-  font-weight:bold;
+  padding:10px 15px;border:none;border-radius:10px;
+  background:#00ff88;cursor:pointer;font-weight:bold;
 }
+
+/* 🔥 ANIMACIÓN DINERO */
+.toast {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#00ff88;
+  padding:10px;
+  border-radius:10px;
+  color:black;
+  opacity:0;
+  transition:0.3s;
+}
+.toast.show {opacity:1;}
 </style>
 </head>
 
@@ -104,7 +69,7 @@ body {
     <p>$0.50 - $6</p>
   </div>
 
-  <div class="top-card" onclick="abrirEncuestas()">
+  <div class="top-card" onclick="abrirOfertas()">
     <h3>Ofertas</h3>
     <p>$1 - $75</p>
   </div>
@@ -136,13 +101,13 @@ body {
   <img src="https://i.imgur.com/2DhmtJ4.png">
 </div>
 
-<!-- SALDO -->
+<!-- 💰 SALDO -->
 <div style="text-align:center; margin-top:20px;">
   <h2 id="saldo">$0.00</h2>
   <p>Hoy: <span id="today">$0.00</span></p>
 </div>
 
-<!-- REFERIDOS -->
+<!-- 🔗 REFERIDOS -->
 <div style="text-align:center; margin-top:20px;">
   <p>Tu link de referido:</p>
   <input id="refLink" style="width:90%; padding:10px; border-radius:8px;" readonly>
@@ -150,19 +115,23 @@ body {
   <button class="btn" onclick="copiarRef()">📋 Copiar</button>
 </div>
 
-<!-- STATS -->
+<!-- 📊 STATS -->
 <div style="text-align:center; margin-top:20px;">
   <h3>Estadísticas</h3>
   <p>Total: <span id="total">$0</span></p>
   <p>Hoy: <span id="today2">$0</span></p>
 </div>
 
+<!-- 💳 BOTONES -->
 <div style="text-align:center; margin:30px;">
   <button class="btn" onclick="retirar()">💳 Retirar</button>
   <button class="btn" onclick="logout()">🚪 Salir</button>
 </div>
 
-<!-- CPX -->
+<!-- 🔥 ANIMACIÓN -->
+<div id="toast" class="toast"></div>
+
+<!-- 🔥 CPX -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script>
@@ -178,6 +147,7 @@ function getUserId() {
   return id;
 }
 
+// 🔥 ENCUESTAS
 function abrirEncuestas() {
   const user_id = getUserId();
   const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
@@ -190,7 +160,22 @@ function abrirEncuestas() {
   `;
 }
 
-// REFERIDOS
+// 🔥 OFERTAS (TIPO FREECASH)
+function abrirOfertas(){
+  const user_id = getUserId();
+
+  document.body.innerHTML = `
+    <button onclick="location.reload()">⬅ Volver</button>
+    <iframe src="https://wall.adgate.com/?user_id=${user_id}" style="width:100%;height:100vh;border:none;"></iframe>
+  `;
+}
+
+// 🎮 JUEGOS
+function abrirJuego(nombre){
+  window.location.href = "game-" + nombre + ".html";
+}
+
+// 🔗 REFERIDOS
 const myId = getUserId();
 document.getElementById("refLink").value = `${window.location.origin}?ref=${myId}`;
 
@@ -199,7 +184,7 @@ function copiarRef(){
   alert("Copiado 🚀");
 }
 
-// RETIRO
+// 💸 RETIRO
 function retirar(){
   fetch("/withdraw", {
     method:"POST",
@@ -209,40 +194,56 @@ function retirar(){
   .then(()=> alert("Solicitud enviada 💰"));
 }
 
-function abrirJuego(nombre){
-  window.location.href = "game-" + nombre + ".html";
+// 🚪 LOGOUT
+function logout(){
+  localStorage.removeItem("cpx_user_id");
+  alert("Sesión cerrada 👋");
+  window.location.href = "index.html";
+}
+
+// 🔥 ANIMACIÓN DINERO
+function showToast(amount){
+  const t = document.getElementById("toast");
+  t.innerText = "+" + amount + " 💰";
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),3000);
 }
 </script>
 
-<!-- FIREBASE -->
+<!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
-  authDomain: "rutarizador-v12.firebaseapp.com",
-  projectId: "rutarizador-v12"
-};
+const app = initializeApp({
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROJECT.firebaseapp.com",
+  projectId: "TU_PROJECT"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const userId = localStorage.getItem("cpx_user_id");
 const userRef = doc(db, "users", userId);
 
-// REALTIME
-onSnapshot(userRef, (docSnap) => {
-  if (docSnap.exists()) {
-    const data = docSnap.data();
+// 🔥 TIEMPO REAL + ANIMACIÓN
+onSnapshot(userRef, (snap) => {
+  if (snap.exists()) {
+    const data = snap.data();
+
     document.getElementById("saldo").innerText = "$" + (data.earnings || 0).toFixed(2);
     document.getElementById("today").innerText = "$" + (data.today || 0).toFixed(2);
     document.getElementById("total").innerText = "$" + (data.earnings || 0);
     document.getElementById("today2").innerText = "$" + (data.today || 0);
+
+    // 💰 animación cuando sube dinero
+    if(data.earnings){
+      showToast("+$$");
+    }
   }
 });
 
-// BONUS DIARIO
+// 🎁 BONUS DIARIO
 const today = new Date().toDateString();
 const last = localStorage.getItem("daily_bonus");
 
@@ -254,15 +255,6 @@ if (last !== today) {
 
   localStorage.setItem("daily_bonus", today);
   alert("🎁 Bono diario recibido");
-}
-</script>
-
-<!-- LOGOUT SIMPLE (ARREGLADO) -->
-<script>
-function logout(){
-  localStorage.removeItem("cpx_user_id");
-  alert("Sesión cerrada 👋");
-  window.location.href = "index.html";
 }
 </script>
 
