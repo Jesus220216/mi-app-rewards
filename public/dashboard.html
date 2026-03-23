@@ -170,24 +170,24 @@ const CPX_APP_ID = "32070";
 const CPX_API_KEY = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
 
 function getUserId() {
-    let id = localStorage.getItem("cpx_user_id");
-    if (!id) {
-        id = "srv-" + Math.random().toString(36).substring(2, 15);
-        localStorage.setItem("cpx_user_id", id);
-    }
-    return id;
+  let id = localStorage.getItem("cpx_user_id");
+  if (!id) {
+    id = "srv-" + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem("cpx_user_id", id);
+  }
+  return id;
 }
 
 function abrirEncuestas() {
-    const user_id = getUserId();
-    const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
+  const user_id = getUserId();
+  const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
 
-    const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
+  const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
 
-    document.body.innerHTML = `
-        <button onclick="location.reload()">⬅ Volver</button>
-        <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
-    `;
+  document.body.innerHTML = `
+    <button onclick="location.reload()">⬅ Volver</button>
+    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
+  `;
 }
 
 // REFERIDOS
@@ -208,22 +208,13 @@ function retirar(){
   })
   .then(()=> alert("Solicitud enviada 💰"));
 }
-  function reclamarBonus(){
-  fetch("/daily-bonus", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ user_id: localStorage.getItem("cpx_user_id") })
-  })
-  .then(res => res.text())
-  .then(msg => alert(msg));
-}
 
 function abrirJuego(nombre){
   window.location.href = "game-" + nombre + ".html";
 }
 </script>
 
-<!-- FIREBASE REALTIME + BONUS -->
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -240,11 +231,10 @@ const db = getFirestore(app);
 const userId = localStorage.getItem("cpx_user_id");
 const userRef = doc(db, "users", userId);
 
-// 🔄 REALTIME
+// REALTIME
 onSnapshot(userRef, (docSnap) => {
   if (docSnap.exists()) {
     const data = docSnap.data();
-
     document.getElementById("saldo").innerText = "$" + (data.earnings || 0).toFixed(2);
     document.getElementById("today").innerText = "$" + (data.today || 0).toFixed(2);
     document.getElementById("total").innerText = "$" + (data.earnings || 0);
@@ -252,7 +242,7 @@ onSnapshot(userRef, (docSnap) => {
   }
 });
 
-// 🎁 BONUS DIARIO (BIEN HECHO)
+// BONUS DIARIO
 const today = new Date().toDateString();
 const last = localStorage.getItem("daily_bonus");
 
@@ -267,80 +257,13 @@ if (last !== today) {
 }
 </script>
 
-<!-- LOGOUT -->
-<script type="module">
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-
-const auth = getAuth();
-
-auth.onAuthStateChanged((user) => {
-  if (!user) return;
-
-  const userId = user.uid;
-  const email = user.email || "";
-
-  // 🔐 (opcional) hash de seguridad
-  const secureHash = ""; // lo puedes generar en backend luego
-
-  const script1 = {
-    div_id: "fullscreen",
-    theme_style: 1,
-    order_by: 2,
-    limit_surveys: 7
-  };
-
-  const script4 = {
-    div_id: "notification",
-    theme_style: 4,
-    position: 5
-  };
-
-  const script5 = {
-    div_id: "notification2",
-    theme_style: 4,
-    position: 6,
-    link: `https://wall.cpx-research.com/index.php?app_id=32070&ext_user_id=${userId}`,
-    newtab: true
-  };
-
-  const config = {
-    general_config: {
-      app_id: 32070,
-      ext_user_id: Ywq44JuE2qXHNPTt70ZNtFKUwMi1,
-      email: email,
-      username: userId,
-      secure_hash: secureHash
-    },
-
-    style_config: {
-      text_color: "#00ffcc",
-      survey_box: {
-        topbar_background_color: "#00ffcc",
-        box_background_color: "#0f172a",
-        rounded_borders: true,
-        stars_filled: "#00ffcc"
-      }
-    },
-
-    script_config: [script1, script4, script5],
-
-    debug: false,
-    useIFrame: true,
-
-    functions: {
-      get_transaction: (tx) => {
-        console.log("💰 Ganancia detectada:", tx);
-      }
-    }
-  };
-
-  window.config = config;
-
-  // 🔥 cargar script CPX
-  const s = document.createElement("script");
-  s.src = "https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js";
-  document.body.appendChild(s);
-});
+<!-- LOGOUT SIMPLE (ARREGLADO) -->
+<script>
+function logout(){
+  localStorage.removeItem("cpx_user_id");
+  alert("Sesión cerrada 👋");
+  window.location.href = "index.html";
+}
 </script>
 
 </body>
