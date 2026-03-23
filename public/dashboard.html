@@ -189,11 +189,22 @@ function abrirEncuestas() {
     const user_id = getUserId();
     const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
 
-    const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
+    const cpx = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
+
+    const fallback = "https://wall.adgem.com"; // oferta alternativa
 
     document.body.innerHTML = `
-        <button onclick="location.reload()">⬅ Volver</button>
-        <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
+        <div style="position:fixed;top:10px;left:10px;z-index:999;">
+            <button onclick="location.reload()">⬅ Volver</button>
+        </div>
+
+        <iframe src="${cpx}" style="width:100%;height:100vh;border:none;"></iframe>
+
+        <div style="position:fixed;bottom:10px;width:100%;text-align:center;">
+            <button onclick="window.open('${fallback}','_blank')" class="btn">
+                🔥 Más ofertas
+            </button>
+        </div>
     `;
 }
 
