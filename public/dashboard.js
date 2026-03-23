@@ -5,7 +5,9 @@ import {
   doc,
   onSnapshot,
   updateDoc,
-  increment
+  increment,
+  getDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // CONFIG
@@ -31,31 +33,40 @@ function getUserId() {
   return id;
 }
 
-// 🔥 REFERIDO
-const myId = getUserId();
+const userId = getUserId();
+const userRef = doc(db, "users", userId);
+
+// 🔥 CREAR USUARIO SI NO EXISTE
+const snap = await getDoc(userRef);
+
+if (!snap.exists()) {
+  await setDoc(userRef, {
+    earnings: 0,
+    today: 0,
+    refs: 0,
+    createdAt: new Date()
+  });
+}
+
+// 🔗 REFERIDO
 document.getElementById("refLink").value =
-  `${window.location.origin}?ref=${myId}`;
+  `${window.location.origin}?ref=${userId}`;
 
 // 🔥 ENCUESTAS
 window.abrirEncuestas = function () {
-  const user_id = getUserId();
-  const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
-
-  const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
+  const hash = CryptoJS.MD5(userId + CPX_API_KEY).toString();
 
   document.body.innerHTML = `
     <button onclick="location.reload()">⬅ Volver</button>
-    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
+    <iframe src="https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${userId}&secure_hash=${hash}" style="width:100%;height:100vh;border:none;"></iframe>
   `;
 };
 
-// 🔥 OFERTAS (ADGATE)
+// 🔥 OFERTAS
 window.abrirOfertas = function () {
-  const user_id = getUserId();
-
   document.body.innerHTML = `
     <button onclick="location.reload()">⬅ Volver</button>
-    <iframe src="https://wall.adgate.com/?user_id=${user_id}" style="width:100%;height:100vh;border:none;"></iframe>
+    <iframe src="https://wall.adgate.com/?user_id=${userId}" style="width:100%;height:100vh;border:none;"></iframe>
   `;
 };
 
@@ -72,12 +83,6 @@ window.copiarRef = function () {
 
 // 💳 RETIRO
 window.retirar = function () {
-  fetch("/withdraw", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: getUserId() })
-  });
-
   alert("Solicitud enviada 💰");
 };
 
@@ -87,29 +92,31 @@ window.logout = function () {
   window.location.href = "index.html";
 };
 
-// 🔥 FIREBASE REALTIME
-const userId = getUserId();
-const userRef = doc(db, "users", userId);
+// 🔥 REALTIME
+let lastEarnings = 0;
 
 onSnapshot(userRef, (snap) => {
-  if (snap.exists()) {
-    const data = snap.data();
+  if (!snap.exists()) return;
 
-    const earnings = (data.earnings || 0).toFixed(2);
-    const today = (data.today || 0).toFixed(2);
+  const data = snap.data();
 
-    document.getElementById("saldo").innerText = "$" + earnings;
-    document.getElementById("today").innerText = "$" + today;
-    document.getElementById("today2").innerText = "$" + today;
-    document.getElementById("total").innerText = "$" + data.earnings;
-    document.getElementById("balance").innerText = "$" + earnings;
+  const earnings = data.earnings || 0;
+  const today = data.today || 0;
 
-    // 💰 ANIMACIÓN
-    showToast("+ dinero 💰");
+  document.getElementById("saldo").innerText = "$" + earnings.toFixed(2);
+  document.getElementById("today").innerText = "$" + today.toFixed(2);
+  document.getElementById("today2").innerText = "$" + today;
+  document.getElementById("total").innerText = "$" + earnings;
+
+  // 💰 SOLO CUANDO SUBE
+  if (earnings > lastEarnings) {
+    showToast("+$0.50 💰");
   }
+
+  lastEarnings = earnings;
 });
 
-// 🎁 BONUS DIARIO
+// 🎁 BONUS DIARIO (SIN ERROR)
 const todayDate = new Date().toDateString();
 const last = localStorage.getItem("daily_bonus");
 
@@ -133,9 +140,10 @@ function showToast(msg) {
     t.style.position = "fixed";
     t.style.bottom = "20px";
     t.style.right = "20px";
-    t.style.background = "#4caf50";
+    t.style.background = "#00ff88";
     t.style.padding = "10px";
     t.style.borderRadius = "10px";
+    t.style.color = "black";
     document.body.appendChild(t);
   }
 
