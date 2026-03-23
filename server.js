@@ -1,4 +1,3 @@
-```js
 const express = require("express");
 const path = require("path");
 const admin = require("firebase-admin");
@@ -54,7 +53,19 @@ app.get("/cpx-postback", async (req, res) => {
 
     // 👤 USUARIO
     const userRef = db.collection("users").doc(ext_user_id);
-    const userDoc = await userRef.get();
+    let userDoc = await userRef.get();
+
+    // 🔥 CREAR USUARIO SI NO EXISTE (CLAVE)
+    if (!userDoc.exists) {
+      await userRef.set({
+        earnings: 0,
+        today: 0,
+        referredBy: null,
+        createdAt: new Date()
+      });
+
+      userDoc = await userRef.get();
+    }
 
     // 💰 SUMAR GANANCIA
     await userRef.set({
@@ -62,8 +73,8 @@ app.get("/cpx-postback", async (req, res) => {
       today: admin.firestore.FieldValue.increment(Number(reward_value))
     }, { merge: true });
 
-    // 🎯 BONO REFERIDO (10%) ✅ CORREGIDO
-    const userData = userDoc.exists ? userDoc.data() : null;
+    // 🎯 BONO REFERIDO (10%)
+    const userData = userDoc.data();
 
     if (userData && userData.referredBy) {
       const referrerRef = db.collection("users").doc(userData.referredBy);
@@ -156,4 +167,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Servidor activo en puerto " + PORT);
 });
-```
