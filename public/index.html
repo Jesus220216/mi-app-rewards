@@ -115,53 +115,38 @@ input {
 
 <!-- 🔥 FIREBASE -->
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// 🔥 CONFIG
 const app = initializeApp({
   apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
   authDomain: "rutarizador-v12.firebaseapp.com",
   projectId: "rutarizador-v12"
 });
 
-window.auth = getAuth(app);
-window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-</script>
-
-<!-- 🔥 FUNCIONES -->
-<script>
+const auth = getAuth(app);
 
 // 👁 VER PASSWORD
-function togglePass(){
+window.togglePass = function(){
   const input = document.getElementById("loginPassword");
   input.type = input.type === "password" ? "text" : "password";
-}
+};
 
-// 📋 PEGAR REFERIDO
-function pasteRef(){
+// 📋 REFERIDO
+window.pasteRef = function(){
   const ref = localStorage.getItem("referrer_id");
   if(ref){
     document.getElementById("referralCode").value = ref;
     alert("Referido aplicado ✅");
-  } else {
-    alert("No hay referido");
   }
-}
-
-// 🎯 GUARDAR REFERIDO DE URL
-window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(window.location.search);
-  const ref = params.get("ref");
-
-  if(ref){
-    localStorage.setItem("referrer_id", ref);
-    document.getElementById("referralCode").value = ref;
-  }
-});
+};
 
 // 🔐 LOGIN
 window.login = async function(){
+  console.log("LOGIN CLICK");
+
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
@@ -172,17 +157,20 @@ window.login = async function(){
 
   try{
     await signInWithEmailAndPassword(auth, email, password);
+    alert("Login correcto ✅");
     window.location.href = "dashboard.html";
   }catch(e){
+    console.error(e);
     alert(e.message);
   }
 };
 
-// 🆕 REGISTRO
+// 🆕 REGISTER
 window.register = async function(){
+  console.log("REGISTER CLICK");
+
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
-  const ref = document.getElementById("referralCode").value;
 
   if (!email || !password){
     alert("Completa los campos");
@@ -191,20 +179,19 @@ window.register = async function(){
 
   try{
     await createUserWithEmailAndPassword(auth, email, password);
-
-    if(ref){
-      localStorage.setItem("referrer_id", ref);
-    }
-
     alert("Cuenta creada 🚀");
   }catch(e){
+    console.error(e);
     alert(e.message);
   }
 };
 
-// 🎁 BONUS (visual)
-function bonus(){
-  alert("🎁 Bonus activado");
+// 🎯 REFERIDO URL
+const params = new URLSearchParams(window.location.search);
+const ref = params.get("ref");
+if(ref){
+  localStorage.setItem("referrer_id", ref);
+  document.getElementById("referralCode").value = ref;
 }
 
 </script>
