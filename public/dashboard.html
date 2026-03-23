@@ -5,23 +5,133 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
 
-<!-- 🔥 TU MISMO CSS (NO CAMBIADO) -->
 <style>
-/* (DEJA TODO TU CSS EXACTO AQUÍ SIN TOCAR) */
-</style>
+body {margin:0;font-family:Arial;background:#050807;color:white;}
+.header {text-align:center;padding:30px 20px;}
+.header span { color:#00ff88; }
 
+.top-cards {display:flex;gap:20px;justify-content:center;flex-wrap:wrap;padding:20px;}
+.top-card {
+  background:#0b1a12;border:1px solid #00ff88;border-radius:15px;
+  padding:20px;width:220px;text-align:center;cursor:pointer;
+}
+
+.apps {display:flex;overflow-x:auto;gap:10px;padding:15px;}
+.app {min-width:70px;background:#111;border-radius:10px;padding:10px;}
+.app img { width:30px; }
+
+.section {text-align:center;margin-top:30px;}
+
+.big-card {
+  margin:20px;background:#0b1a12;border:1px solid #00ff88;
+  border-radius:15px;padding:20px;display:flex;
+  justify-content:space-between;align-items:center;
+}
+
+.big-card img {width:120px;border-radius:10px;}
+
+.btn {
+  padding:10px 15px;border:none;border-radius:10px;
+  background:#00ff88;cursor:pointer;font-weight:bold;
+}
+
+.toast {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#00ff88;
+  padding:10px;
+  border-radius:10px;
+  color:black;
+  opacity:0;
+  transition:0.3s;
+}
+.toast.show {opacity:1;}
+</style>
 </head>
 
 <body>
 
-<!-- 🔥 TODO TU HTML IGUAL (NO CAMBIAR NADA) -->
-<!-- PEGA AQUÍ TODO TU BODY EXACTO (cards, stats, etc.) -->
+<div class="header">
+  <h1>Ingresos adicionales fáciles</h1>
+  <span>Gana hasta $50 al día</span>
+</div>
 
-<!-- CPX -->
+<div class="top-cards">
+  <div class="top-card" onclick="abrirJuego('ruleta')">
+    <h3>Jugar juegos</h3>
+    <p>$0.50 - $120</p>
+  </div>
+
+  <div class="top-card" onclick="abrirEncuestas()">
+    <h3>Encuestas</h3>
+    <p>$0.50 - $6</p>
+  </div>
+
+  <div class="top-card" onclick="abrirOfertas()">
+    <h3>Ofertas</h3>
+    <p>$1 - $75</p>
+  </div>
+</div>
+
+<div class="apps">
+  <div class="app"><img src="https://img.icons8.com/color/48/netflix.png"></div>
+  <div class="app"><img src="https://img.icons8.com/color/48/paypal.png"></div>
+  <div class="app"><img src="https://img.icons8.com/color/48/amazon.png"></div>
+</div>
+
+<div class="section">
+  <h2>Más recompensas</h2>
+</div>
+
+<div class="big-card">
+  <div>
+    <h3>Gana dinero jugando</h3>
+    <button class="btn" onclick="abrirJuego('ruleta')">Ir</button>
+  </div>
+  <img src="https://i.imgur.com/2DhmtJ4.png">
+</div>
+
+<div class="big-card">
+  <div>
+    <h3>Completa encuestas</h3>
+    <button class="btn" onclick="abrirEncuestas()">Ir</button>
+  </div>
+  <img src="https://i.imgur.com/2DhmtJ4.png">
+</div>
+
+<!-- SALDO -->
+<div style="text-align:center; margin-top:20px;">
+  <h2 id="saldo">$0.00</h2>
+  <p>Hoy: <span id="today">$0.00</span></p>
+</div>
+
+<!-- REFERIDOS -->
+<div style="text-align:center; margin-top:20px;">
+  <p>Tu link:</p>
+  <input id="refLink" style="width:90%; padding:10px;" readonly>
+  <br><br>
+  <button class="btn" onclick="copiarRef()">📋 Copiar</button>
+</div>
+
+<!-- STATS -->
+<div style="text-align:center; margin-top:20px;">
+  <p>Total: <span id="total">$0</span></p>
+  <p>Hoy: <span id="today2">$0</span></p>
+</div>
+
+<div style="text-align:center; margin:30px;">
+  <button class="btn" onclick="retirar()">💳 Retirar</button>
+  <button class="btn" onclick="logout()">🚪 Salir</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- LIBRERIA -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-<!-- 🔥 TU JS EXTERNO -->
-<script type="module" src="js/dashboard.js"></script>
+<!-- 🔥 TU JS -->
+<script type="module" src="dashboard.js"></script>
 
 </body>
 </html>
