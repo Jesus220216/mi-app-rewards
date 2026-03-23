@@ -18,9 +18,7 @@ body {
   padding:30px 20px;
 }
 
-.header span {
-  color:#00ff88;
-}
+.header span { color:#00ff88; }
 
 .top-cards {
   display:flex;
@@ -38,11 +36,6 @@ body {
   width:220px;
   text-align:center;
   cursor:pointer;
-  transition:0.3s;
-}
-
-.top-card:hover {
-  transform:scale(1.05);
 }
 
 .apps {
@@ -57,8 +50,6 @@ body {
   background:#111;
   border-radius:10px;
   padding:10px;
-  text-align:center;
-  border:1px solid #222;
 }
 
 .app img { width:30px; }
@@ -98,7 +89,6 @@ body {
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <h1>Ingresos adicionales fáciles</h1>
   <span>Gana hasta $50 al día</span>
@@ -109,20 +99,17 @@ body {
 
   <div class="top-card" onclick="abrirJuego('ruleta')">
     <h3>Jugar juegos</h3>
-    <p>Gana dinero</p>
-    <b>$0.50 - $120</b>
+    <p>$0.50 - $120</p>
   </div>
 
   <div class="top-card" onclick="abrirEncuestas()">
     <h3>Encuestas</h3>
-    <p>Completa tareas</p>
-    <b>$0.50 - $6</b>
+    <p>$0.50 - $6</p>
   </div>
 
   <div class="top-card" onclick="abrirEncuestas()">
     <h3>Ofertas</h3>
-    <p>Apps y pruebas</p>
-    <b>$1 - $75</b>
+    <p>$1 - $75</p>
   </div>
 
 </div>
@@ -132,19 +119,16 @@ body {
   <div class="app"><img src="https://img.icons8.com/color/48/netflix.png"></div>
   <div class="app"><img src="https://img.icons8.com/color/48/paypal.png"></div>
   <div class="app"><img src="https://img.icons8.com/color/48/amazon.png"></div>
-  <div class="app"><img src="https://img.icons8.com/color/48/walmart.png"></div>
-  <div class="app"><img src="https://img.icons8.com/color/48/spotify.png"></div>
 </div>
 
 <div class="section">
-  <h2>Más de 6 recompensas</h2>
+  <h2>Más recompensas</h2>
 </div>
 
 <!-- TARJETAS -->
 <div class="big-card">
   <div>
     <h3>Gana dinero jugando</h3>
-    <p>Completa juegos y gana recompensas</p>
     <button class="btn" onclick="abrirJuego('ruleta')">Ir</button>
   </div>
   <img src="https://i.imgur.com/2DhmtJ4.png">
@@ -152,42 +136,48 @@ body {
 
 <div class="big-card">
   <div>
-    <h3>Empieza a ganar al instante</h3>
-    <p>Completa tareas y encuestas</p>
+    <h3>Completa encuestas</h3>
     <button class="btn" onclick="abrirEncuestas()">Ir</button>
   </div>
   <img src="https://i.imgur.com/2DhmtJ4.png">
 </div>
 
-<!-- USUARIO -->
-<div style="padding:20px; text-align:center;">
+<!-- 💰 SALDO -->
+<div style="text-align:center; margin-top:20px;">
   <h2 id="saldo">$0.00</h2>
   <p>Hoy: <span id="today">$0.00</span></p>
-  <p>Referidos: <span id="refs">0</span></p>
+</div>
+
+<!-- 🎯 REFERIDOS -->
+<div style="text-align:center; margin-top:20px;">
+  <p>Tu link de referido:</p>
+  <input id="refLink" style="width:90%; padding:10px; border-radius:8px;" readonly>
+  <br><br>
+  <button class="btn" onclick="copiarRef()">📋 Copiar</button>
+</div>
+
+<!-- 📊 STATS -->
+<div style="text-align:center; margin-top:20px;">
+  <h3>Estadísticas</h3>
+  <p>Total: <span id="total">$0</span></p>
+  <p>Hoy: <span id="today2">$0</span></p>
 </div>
 
 <!-- BOTONES -->
-<div style="padding:20px; text-align:center;">
-  <button class="btn" onclick="miniJuego()">🎮 Mini juego</button>
+<div style="text-align:center; margin:30px;">
   <button class="btn" onclick="retirar()">💳 Retirar</button>
   <button class="btn" onclick="logout()">🚪 Salir</button>
 </div>
 
-<script>
-// =======================
-// 🎮 JUEGOS
-// =======================
-function abrirJuego(nombre){
-  window.location.href = "game-" + nombre + ".html";
-}
+<!-- ===================== -->
+<!-- 🔐 CPX + FUNCIONES -->
+<!-- ===================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-// =======================
-// 🔐 CPX CONFIG PRO
-// =======================
+<script>
 const CPX_APP_ID = "32070";
 const CPX_API_KEY = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
 
-// user id real
 function getUserId() {
     let id = localStorage.getItem("cpx_user_id");
     if (!id) {
@@ -197,33 +187,75 @@ function getUserId() {
     return id;
 }
 
-// md5
-function md5(string) {
-    return CryptoJS.MD5(string).toString();
-}
-
-// abrir CPX
 function abrirEncuestas() {
     const user_id = getUserId();
-    const hash = md5(user_id + CPX_API_KEY);
+    const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
 
     const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
 
-    // pantalla completa tipo app
     document.body.innerHTML = `
-        <div style="position:fixed;top:10px;left:10px;z-index:999;">
-            <button onclick="location.reload()">⬅ Volver</button>
-        </div>
-
-        <iframe src="${url}" style="width:100%; height:100vh; border:none;"></iframe>
+        <button onclick="location.reload()">⬅ Volver</button>
+        <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
     `;
+}
+
+// 🎯 REFERIDOS
+const myId = getUserId();
+const refLink = `${window.location.origin}?ref=${myId}`;
+document.getElementById("refLink").value = refLink;
+
+function copiarRef(){
+  navigator.clipboard.writeText(refLink);
+  alert("Copiado 🚀");
+}
+
+// 💳 RETIRO
+function retirar(){
+  fetch("/withdraw", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ user_id: getUserId() })
+  })
+  .then(res=>res.text())
+  .then(()=> alert("Solicitud enviada 💰"));
+}
+
+function abrirJuego(nombre){
+  window.location.href = "game-" + nombre + ".html";
 }
 </script>
 
-<!-- LIBRERIA MD5 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<!-- ===================== -->
+<!-- 🔥 FIREBASE REALTIME -->
+<!-- ===================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<script type="module" src="dashboard.js"></script>
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_DOMINIO",
+  projectId: "TU_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const userId = localStorage.getItem("cpx_user_id");
+
+const userRef = doc(db, "users", userId);
+
+onSnapshot(userRef, (docSnap) => {
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+
+    document.getElementById("saldo").innerText = "$" + (data.earnings || 0).toFixed(2);
+    document.getElementById("today").innerText = "$" + (data.today || 0).toFixed(2);
+    document.getElementById("total").innerText = "$" + (data.earnings || 0);
+    document.getElementById("today2").innerText = "$" + (data.today || 0);
+  }
+});
+</script>
 
 </body>
 </html>
