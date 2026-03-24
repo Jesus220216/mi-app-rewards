@@ -991,6 +991,19 @@ function getUserId() {
   return id;
 }
 
+function getRef() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("ref");
+}
+
+const ref = getRef();
+const myId = getUserId();
+
+// Guardar referido SOLO la primera vez
+if (ref && ref !== myId && !localStorage.getItem("ref_applied")) {
+  localStorage.setItem("ref_applied", ref);
+}
+
 function abrirEncuestas() {
   const user_id = getUserId();
   const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
@@ -1041,27 +1054,58 @@ function completeGame() {
       'dice': 2.00,
       'trivia': 1.25
     };
-    
+
     const reward = rewards[currentGame] || 0.50;
-    alert(`✅ ¡Juego completado! Has ganado $${reward.toFixed(2)}`);
+
+    // SUMAR AL USUARIO
+    updateDoc(userRef, {
+      earnings: increment(reward),
+      today: increment(reward)
+    });
+
+    // COMISIÓN REFERIDO (10%)
+    if (referrerRef) {
+      updateDoc(referrerRef, {
+        earnings: increment(reward * 0.10)
+      });
+    }
+
+    alert(`✅ Ganaste $${reward.toFixed(2)}`);
     closeGame();
   }
 }
 
 // VIDEOS
-function watchVideo(videoId) {
-  currentVideo = videoId;
-  videoTime = 0;
-  
-  const videoNames = {
-    'video1': '📺 Tutorial Rápido',
-    'video2': '📺 Consejos de Ahorro',
-    'video3': '📺 Cómo Ganar Más',
-    'video4': '📺 Historias de Éxito',
-    'video5': '📺 Promoción Especial',
-    'video6': '📺 Webinar Exclusivo'
-  };
-  
+function completeVideo() {
+  if (currentVideo) {
+    const rewards = {
+      'video1': 0.25,
+      'video2': 0.50,
+      'video3': 0.35,
+      'video4': 0.75,
+      'video5': 1.00,
+      'video6': 2.00
+    };
+
+    const reward = rewards[currentVideo] || 0.25;
+
+    // SUMAR AL USUARIO
+    updateDoc(userRef, {
+      earnings: increment(reward),
+      today: increment(reward)
+    });
+
+    // COMISIÓN REFERIDO
+    if (referrerRef) {
+      updateDoc(referrerRef, {
+        earnings: increment(reward * 0.10)
+      });
+    }
+
+    alert(`✅ Ganaste $${reward.toFixed(2)}`);
+    closeVideo();
+  }
+}  
   document.getElementById('videoTitle').textContent = videoNames[videoId] || 'Video';
   document.getElementById('videoModal').style.display = 'block';
   
@@ -1158,48 +1202,71 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ✅ 1. CAPTURAR REFERIDO (ANTES DE TODO)
+const urlParams = new URLSearchParams(window.location.search);
+const ref = urlParams.get("ref");
+
+if (ref) {
+  localStorage.setItem("ref_applied", ref);
+}
+
+// ✅ 2. INICIALIZAR USUARIO (TODO DENTRO DE FUNCIÓN ASYNC)
+async function initUser() {
+  const userId = getUserId();
+  const userRef = doc(db, "users", userId);
+
+  const referrerId = localStorage.getItem("ref_applied");
+  const referrerRef = referrerId ? doc(db, "users", referrerId) : null;
+
+  const docSnap = await getDoc(userRef);
+
+  // ✅ CREAR USUARIO SI NO EXISTE
+  if (!docSnap.exists()) {
+    await setDoc(userRef, {
+      earnings: 0,
+      today: 0,
+      referrer: referrerId || null,
+      createdAt: Date.now()
+    });
+
+    // ✅ PAGAR COMISIÓN SOLO UNA VEZ
+    if (referrerRef) {
+      await updateDoc(referrerRef, {
+        earnings: increment(0.20)
+      });
+
+      console.log("✅ Comisión de $0.20 pagada");
+      localStorage.removeItem("ref_applied"); // anti fraude
+    }
+  }
+}
+
+initUser();
+</script>
+
+  // ✅ ANTI FRAUDE
+    localStorage.removeItem("ref_applied");
+  }
+}
+
+
 // ✅ 1. CAPTURAR REFERIDO (cuando alguien entra)
 const urlParams = new URLSearchParams(window.location.search);
 const ref = urlParams.get("ref");
 
 if (ref) {
-  localStorage.setItem("referrer", ref);
+  localStorage.setItem("ref_applied", ref);
 }
 
 // ✅ 2. CREAR USUARIO + GUARDAR REFERIDO
 const userId = getUserId();
 const userRef = doc(db, "users", userId);
+const referrerId = localStorage.getItem("ref_applied");
+const referrerRef = referrerId ? doc(db, "users", referrerId) : null;
 
-const docSnap = await getDoc(userRef);
 
-if (!docSnap.exists()) {
-  // ✅ Usuario nuevo - crear documento
-  await setDoc(userRef, {
-    earnings: 0,
-    today: 0,
-    referrer: localStorage.getItem("referrer") || null,
-    createdAt: Date.now()
-  });
 
-  // ✅ 3. PAGAR COMISIÓN AUTOMÁTICA
-  const referrer = localStorage.getItem("referrer");
-
-  if (referrer) {
-    const refRef = doc(db, "users", referrer);
-
-    await updateDoc(refRef, {
-      earnings: increment(0.20) // comisión por nuevo referido
-    });
-
-    console.log("✅ Comisión de $0.20 pagada al referente");
-  }
-
-  // ✅ 4. BONUS (ANTI FRAUDE BÁSICO)
-  // Evita que se pague doble
-  localStorage.removeItem("referrer");
-}
-
-// REALTIME UPDATES - Mostrar datos en tiempo real
+  // REALTIME UPDATES - Mostrar datos en tiempo real
 onSnapshot(userRef, (docSnap) => {
   if (docSnap.exists()) {
     const data = docSnap.data();
