@@ -3,135 +3,241 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
+
+<title>App Rewards PRO</title>
+
+<!-- CRYPTO (OBLIGATORIO) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <style>
-body {margin:0;font-family:Arial;background:#050807;color:white;}
-.header {text-align:center;padding:30px 20px;}
-.header span { color:#00ff88; }
-
-.top-cards {display:flex;gap:20px;justify-content:center;flex-wrap:wrap;padding:20px;}
-.top-card {
-  background:#0b1a12;border:1px solid #00ff88;border-radius:15px;
-  padding:20px;width:220px;text-align:center;cursor:pointer;
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#05070f;
+  color:white;
 }
 
-.apps {display:flex;overflow-x:auto;gap:10px;padding:15px;}
-.app {min-width:70px;background:#111;border-radius:10px;padding:10px;}
-.app img { width:30px; }
-
-.section {text-align:center;margin-top:30px;}
-
-.big-card {
-  margin:20px;background:#0b1a12;border:1px solid #00ff88;
-  border-radius:15px;padding:20px;display:flex;
-  justify-content:space-between;align-items:center;
+/* SIDEBAR */
+.sidebar{
+  position:fixed;
+  width:220px;
+  height:100%;
+  background:#0b1220;
+  padding:20px;
+}
+.sidebar h2{color:#00ff88;}
+.sidebar button{
+  display:block;
+  margin:10px 0;
+  width:100%;
+  padding:10px;
+  background:#111;
+  border:none;
+  color:white;
+  border-radius:10px;
+  cursor:pointer;
 }
 
-.big-card img {width:120px;border-radius:10px;}
-
-.btn {
-  padding:10px 15px;border:none;border-radius:10px;
-  background:#00ff88;cursor:pointer;font-weight:bold;
+/* CONTENT */
+.main{
+  margin-left:240px;
+  padding:20px;
 }
 
-.toast {
+/* CARDS */
+.card{
+  background:rgba(0,255,136,0.05);
+  border:1px solid #00ff88;
+  border-radius:15px;
+  padding:20px;
+  margin-bottom:15px;
+}
+
+/* BOTONES */
+.btn{
+  background:#00ff88;
+  border:none;
+  padding:10px 15px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+/* TOAST */
+.toast{
   position:fixed;
   bottom:20px;
   right:20px;
   background:#00ff88;
+  color:black;
   padding:10px;
   border-radius:10px;
-  color:black;
   opacity:0;
-  transition:0.3s;
+  transition:.3s;
 }
-.toast.show {opacity:1;}
+.toast.show{opacity:1}
+
+/* LOADER */
+.loader{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h1>Ingresos adicionales fáciles</h1>
-  <span>Gana hasta $50 al día</span>
+<div id="loader" class="loader">🚀 Cargando...</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>💰 Rewards</h2>
+  <button onclick="abrirEncuestas()">📋 Encuestas</button>
+  <button onclick="abrirOfertas()">🎁 Ofertas</button>
+  <button onclick="retirar()">💳 Retirar</button>
+  <button onclick="logout()">🚪 Salir</button>
 </div>
 
-<div class="top-cards">
-  <div class="top-card" onclick="abrirJuego('ruleta')">
-    <h3>Jugar juegos</h3>
-    <p>$0.50 - $120</p>
+<!-- MAIN -->
+<div class="main">
+
+  <div class="card">
+    <h2>Saldo: <span id="saldo">$0.00</span></h2>
+    <p>Hoy: <span id="today">$0.00</span></p>
   </div>
 
-  <div class="top-card" onclick="abrirEncuestas()">
-    <h3>Encuestas</h3>
-    <p>$0.50 - $6</p>
+  <div class="card">
+    <h3>XP Nivel</h3>
+    <p>Nivel: <span id="nivel">1</span></p>
+    <p>XP: <span id="xp">0</span></p>
   </div>
 
-  <div class="top-card" onclick="abrirOfertas()">
-    <h3>Ofertas</h3>
-    <p>$1 - $75</p>
+  <div class="card">
+    <h3>Referidos</h3>
+    <input id="refLink" style="width:100%;padding:10px;">
+    <br><br>
+    <button class="btn" onclick="copiarRef()">Copiar</button>
   </div>
-</div>
 
-<div class="apps">
-  <div class="app"><img src="https://img.icons8.com/color/48/netflix.png"></div>
-  <div class="app"><img src="https://img.icons8.com/color/48/paypal.png"></div>
-  <div class="app"><img src="https://img.icons8.com/color/48/amazon.png"></div>
-</div>
-
-<div class="section">
-  <h2>Más recompensas</h2>
-</div>
-
-<div class="big-card">
-  <div>
-    <h3>Gana dinero jugando</h3>
-    <button class="btn" onclick="abrirJuego('ruleta')">Ir</button>
-  </div>
-  <img src="https://i.imgur.com/2DhmtJ4.png">
-</div>
-
-<div class="big-card">
-  <div>
-    <h3>Completa encuestas</h3>
-    <button class="btn" onclick="abrirEncuestas()">Ir</button>
-  </div>
-  <img src="https://i.imgur.com/2DhmtJ4.png">
-</div>
-
-<!-- SALDO -->
-<div style="text-align:center; margin-top:20px;">
-  <h2 id="saldo">$0.00</h2>
-  <p>Hoy: <span id="today">$0.00</span></p>
-</div>
-
-<!-- REFERIDOS -->
-<div style="text-align:center; margin-top:20px;">
-  <p>Tu link:</p>
-  <input id="refLink" style="width:90%; padding:10px;" readonly>
-  <br><br>
-  <button class="btn" onclick="copiarRef()">📋 Copiar</button>
-</div>
-
-<!-- STATS -->
-<div style="text-align:center; margin-top:20px;">
-  <p>Total: <span id="total">$0</span></p>
-  <p>Hoy: <span id="today2">$0</span></p>
-</div>
-
-<div style="text-align:center; margin:30px;">
-  <button class="btn" onclick="retirar()">💳 Retirar</button>
-  <button class="btn" onclick="logout()">🚪 Salir</button>
 </div>
 
 <div id="toast" class="toast"></div>
 
-<!-- LIBRERIA -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<!-- 🔥 TU JS -->
-<script type="module" src="dashboard.js"></script>
+const app = initializeApp({
+  apiKey:"AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
+  authDomain:"rutarizador-v12.firebaseapp.com",
+  projectId:"rutarizador-v12"
+});
+
+const db = getFirestore(app);
+
+/* USER */
+function getUserId(){
+  let id = localStorage.getItem("cpx_user_id");
+  if(!id){
+    id="srv-"+Math.random().toString(36).substring(2);
+    localStorage.setItem("cpx_user_id",id);
+  }
+  return id;
+}
+
+const userId = getUserId();
+const userRef = doc(db,"users",userId);
+
+/* CREATE USER */
+const snap = await getDoc(userRef);
+if(!snap.exists()){
+  await setDoc(userRef,{
+    earnings:0,
+    today:0,
+    xp:0,
+    level:1
+  });
+}
+
+/* REFER */
+refLink.value = location.origin + "?ref=" + userId;
+
+/* REALTIME */
+onSnapshot(userRef,(snap)=>{
+  const d = snap.data();
+  saldo.innerText="$"+d.earnings.toFixed(2);
+  today.innerText="$"+d.today.toFixed(2);
+  xp.innerText=d.xp;
+  nivel.innerText=d.level;
+});
+
+/* FAKE EARNINGS */
+setInterval(async ()=>{
+  const val=(Math.random()*0.05).toFixed(2);
+  await updateDoc(userRef,{
+    earnings:increment(parseFloat(val)),
+    today:increment(parseFloat(val)),
+    xp:increment(5)
+  });
+  toast("+"+val+" 💰");
+},8000);
+
+/* BONUS DIARIO */
+const t=new Date().toDateString();
+if(localStorage.getItem("bonus")!=t){
+  await updateDoc(userRef,{
+    earnings:increment(0.5),
+    today:increment(0.5),
+    xp:increment(20)
+  });
+  localStorage.setItem("bonus",t);
+}
+
+/* TOAST */
+window.toast=(msg)=>{
+  const t=document.getElementById("toast");
+  t.innerText=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),3000);
+};
+
+/* CPX */
+window.abrirEncuestas=()=>{
+  const hash=CryptoJS.MD5(userId+"Rg9JpjEO4PNU1CYZRx6owtZkypREstSS").toString();
+  document.body.innerHTML=`
+  <button onclick="location.reload()">⬅ Volver</button>
+  <iframe src="https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${userId}&secure_hash=${hash}" style="width:100%;height:100vh"></iframe>`;
+};
+
+window.abrirOfertas=()=>{
+  document.body.innerHTML=`
+  <button onclick="location.reload()">⬅ Volver</button>
+  <iframe src="https://wall.adgate.com/?user_id=${userId}" style="width:100%;height:100vh"></iframe>`;
+};
+
+/* ACTIONS */
+window.copiarRef=()=>{
+  navigator.clipboard.writeText(refLink.value);
+  toast("Copiado 🚀");
+};
+
+window.retirar=()=>toast("Retiro solicitado 💳");
+
+window.logout=()=>{
+  localStorage.removeItem("cpx_user_id");
+  location.reload();
+};
+
+/* LOADER OFF */
+setTimeout(()=>loader.style.display="none",1500);
+
+</script>
 
 </body>
 </html>
