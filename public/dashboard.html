@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Freecash Style con Juegos y Videos</title>
+<title>Dashboard PRO - Freecash Style con Referidos</title>
 
 <style>
 * {
@@ -719,7 +719,7 @@ body {
 
 <!-- NAVBAR -->
 <div class="navbar">
-  <div class="navbar-brand">💰 Freecash</div>
+  <div class="navbar-brand">💰 Freecash PRO</div>
   <div class="navbar-right">
     <div class="balance-badge">Balance: <span id="saldo">$0.00</span></div>
     <button class="logout-btn" onclick="logout()">🚪 Salir</button>
@@ -916,20 +916,20 @@ body {
 
   <!-- REFERRAL SECTION -->
   <div class="referral-section">
-    <h2>🔗 Programa de Referidos</h2>
-    <p style="color: #b0bec5; margin-bottom: 20px;">Comparte tu enlace y gana comisiones de tus amigos</p>
+    <h2>🔗 Programa de Referidos PRO</h2>
+    <p style="color: #b0bec5; margin-bottom: 20px;">Comparte tu enlace y gana <strong style="color: #81c784;">$0.20</strong> por cada referido nuevo</p>
     <div class="referral-input-group">
       <input id="refLink" type="text" readonly placeholder="Tu enlace de referido">
       <button class="btn btn-primary" onclick="copiarRef()">📋 Copiar</button>
     </div>
     <div class="referral-stats">
       <div class="referral-stat">
-        <p>Referidos</p>
-        <div class="value">0</div>
+        <p>Referidos Activos</p>
+        <div class="value" id="referredCount">0</div>
       </div>
       <div class="referral-stat">
         <p>Comisión Ganada</p>
-        <div class="value">$0.00</div>
+        <div class="value" id="referralEarnings">$0.00</div>
       </div>
     </div>
   </div>
@@ -1125,6 +1125,7 @@ function abrirJuego(nombre){
 // LOGOUT
 function logout(){
   localStorage.removeItem("cpx_user_id");
+  localStorage.removeItem("referrer");
   alert("👋 Sesión cerrada");
   window.location.href = "index.html";
 }
@@ -1143,10 +1144,10 @@ window.onclick = function(event) {
 }
 </script>
 
-<!-- FIREBASE -->
+<!-- FIREBASE - SISTEMA DE REFERIDOS PRO -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
@@ -1157,10 +1158,48 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const userId = localStorage.getItem("cpx_user_id");
+// ✅ 1. CAPTURAR REFERIDO (cuando alguien entra)
+const urlParams = new URLSearchParams(window.location.search);
+const ref = urlParams.get("ref");
+
+if (ref) {
+  localStorage.setItem("referrer", ref);
+}
+
+// ✅ 2. CREAR USUARIO + GUARDAR REFERIDO
+const userId = getUserId();
 const userRef = doc(db, "users", userId);
 
-// REALTIME UPDATES
+const docSnap = await getDoc(userRef);
+
+if (!docSnap.exists()) {
+  // ✅ Usuario nuevo - crear documento
+  await setDoc(userRef, {
+    earnings: 0,
+    today: 0,
+    referrer: localStorage.getItem("referrer") || null,
+    createdAt: Date.now()
+  });
+
+  // ✅ 3. PAGAR COMISIÓN AUTOMÁTICA
+  const referrer = localStorage.getItem("referrer");
+
+  if (referrer) {
+    const refRef = doc(db, "users", referrer);
+
+    await updateDoc(refRef, {
+      earnings: increment(0.20) // comisión por nuevo referido
+    });
+
+    console.log("✅ Comisión de $0.20 pagada al referente");
+  }
+
+  // ✅ 4. BONUS (ANTI FRAUDE BÁSICO)
+  // Evita que se pague doble
+  localStorage.removeItem("referrer");
+}
+
+// REALTIME UPDATES - Mostrar datos en tiempo real
 onSnapshot(userRef, (docSnap) => {
   if (docSnap.exists()) {
     const data = docSnap.data();
