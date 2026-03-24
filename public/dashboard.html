@@ -3,666 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Rutarizadorv12</title>
+<title>Dashboard</title>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-  color: #ffffff;
-  min-height: 100vh;
+  margin:0;
+  font-family: Arial;
+  background:#050807;
+  color:white;
 }
 
-/* HEADER/NAVBAR */
-.navbar {
-  background: rgba(15, 20, 40, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
-  padding: 15px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+.header { text-align:center; padding:30px 20px; }
+.header span { color:#00ff88; }
+
+.top-cards {
+  display:flex;
+  gap:20px;
+  justify-content:center;
+  flex-wrap:wrap;
+  padding:20px;
 }
 
-.navbar-brand {
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.top-card {
+  background:#0b1a12;
+  border:1px solid #00ff88;
+  border-radius:15px;
+  padding:20px;
+  width:220px;
+  text-align:center;
+  cursor:pointer;
 }
 
-.navbar-right {
-  display: flex;
-  gap: 15px;
-  align-items: center;
+.apps {
+  display:flex;
+  overflow-x:auto;
+  gap:10px;
+  padding:15px;
 }
 
-.balance-badge {
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px solid #4caf50;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #81c784;
+.app {
+  min-width:70px;
+  background:#111;
+  border-radius:10px;
+  padding:10px;
 }
 
-.logout-btn {
-  background: rgba(244, 67, 54, 0.2);
-  border: 1px solid #f44336;
-  color: #f44336;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
+.app img { width:30px; }
 
-.logout-btn:hover {
-  background: rgba(244, 67, 54, 0.3);
-  transform: translateY(-2px);
-}
-
-/* MAIN CONTAINER */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 30px 20px;
-}
-
-/* HERO SECTION */
-.hero {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(129, 199, 132, 0.05) 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.hero h1 {
-  font-size: 42px;
-  margin-bottom: 10px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #81c784 0%, #4caf50 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero p {
-  font-size: 18px;
-  color: #b0bec5;
-  margin-bottom: 5px;
-}
-
-.hero .subtitle {
-  font-size: 14px;
-  color: #90a4ae;
-}
-
-/* TOP CARDS SECTION */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.card {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(129, 199, 132, 0.02) 100%);
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  border-radius: 16px;
-  padding: 30px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.card:hover::before {
-  left: 100%;
-}
-
-.card:hover {
-  border-color: #4caf50;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(129, 199, 132, 0.08) 100%);
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(76, 175, 80, 0.2);
-}
-
-.card h3 {
-  font-size: 22px;
-  margin-bottom: 10px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.card p {
-  font-size: 16px;
-  color: #81c784;
-  font-weight: 700;
-  margin-bottom: 15px;
-}
-
-.card-icon {
-  font-size: 32px;
-  margin-bottom: 10px;
-}
-
-/* APPS CAROUSEL */
-.apps-section {
-  margin-bottom: 40px;
-}
-
-.apps-section h2 {
-  font-size: 18px;
-  margin-bottom: 15px;
-  color: #b0bec5;
-  font-weight: 600;
-}
-
-.apps-carousel {
-  display: flex;
-  overflow-x: auto;
-  gap: 15px;
-  padding: 15px 0;
-  scroll-behavior: smooth;
-}
-
-.apps-carousel::-webkit-scrollbar {
-  height: 8px;
-}
-
-.apps-carousel::-webkit-scrollbar-track {
-  background: rgba(76, 175, 80, 0.1);
-  border-radius: 10px;
-}
-
-.apps-carousel::-webkit-scrollbar-thumb {
-  background: #4caf50;
-  border-radius: 10px;
-}
-
-.app-item {
-  min-width: 90px;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(129, 199, 132, 0.05) 100%);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 12px;
-  padding: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.app-item:hover {
-  border-color: #4caf50;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(129, 199, 132, 0.1) 100%);
-  transform: translateY(-5px);
-}
-
-.app-item img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-}
-
-/* BIG CARDS */
-.big-cards-section {
-  margin-bottom: 40px;
-}
+.section { text-align:center; margin-top:30px; }
 
 .big-card {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(129, 199, 132, 0.03) 100%);
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  border-radius: 16px;
-  padding: 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  transition: all 0.3s ease;
+  margin:20px;
+  background:#0b1a12;
+  border:1px solid #00ff88;
+  border-radius:15px;
+  padding:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-.big-card:hover {
-  border-color: #4caf50;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(129, 199, 132, 0.08) 100%);
-  transform: translateX(8px);
-  box-shadow: 0 20px 40px rgba(76, 175, 80, 0.15);
-}
+.big-card img { width:120px; border-radius:10px; }
 
-.big-card-content h3 {
-  font-size: 24px;
-  margin-bottom: 15px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.big-card-content p {
-  color: #b0bec5;
-  margin-bottom: 15px;
-  font-size: 14px;
-}
-
-.big-card img {
-  width: 140px;
-  height: 140px;
-  border-radius: 12px;
-  object-fit: cover;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-/* BUTTONS */
 .btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  padding:10px 15px;
+  border:none;
+  border-radius:10px;
+  background:#00ff88;
+  cursor:pointer;
+  font-weight:bold;
 }
-
-.btn-primary {
-  background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
-  color: #ffffff;
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
-}
-
-.btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(76, 175, 80, 0.4);
-}
-
-.btn-primary:active {
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: rgba(76, 175, 80, 0.1);
-  color: #81c784;
-  border: 1px solid #4caf50;
-}
-
-.btn-secondary:hover {
-  background: rgba(76, 175, 80, 0.2);
-  transform: translateY(-2px);
-}
-
-/* STATS SECTION */
-.stats-section {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(129, 199, 132, 0.03) 100%);
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  border-radius: 16px;
-  padding: 30px;
-  margin-bottom: 30px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 20px;
-  background: rgba(15, 20, 40, 0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(76, 175, 80, 0.2);
-}
-
-.stat-item h4 {
-  color: #b0bec5;
-  font-size: 12px;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.stat-item .value {
-  font-size: 28px;
-  color: #81c784;
-  font-weight: 700;
-}
-
-/* REFERRAL SECTION */
-.referral-section {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(129, 199, 132, 0.03) 100%);
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  border-radius: 16px;
-  padding: 30px;
-  margin-bottom: 30px;
-}
-
-.referral-section h2 {
-  font-size: 20px;
-  margin-bottom: 20px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.referral-input-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.referral-input-group input {
-  flex: 1;
-  padding: 12px 16px;
-  background: rgba(15, 20, 40, 0.6);
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.referral-input-group input:focus {
-  outline: none;
-  border-color: #4caf50;
-  background: rgba(15, 20, 40, 0.8);
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.2);
-}
-
-.referral-input-group input::placeholder {
-  color: #607d8b;
-}
-
-.referral-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.referral-stat {
-  background: rgba(15, 20, 40, 0.5);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 12px;
-  padding: 15px;
-  text-align: center;
-}
-
-.referral-stat p {
-  color: #b0bec5;
-  font-size: 12px;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.referral-stat .value {
-  font-size: 20px;
-  color: #81c784;
-  font-weight: 700;
-}
-
-/* WITHDRAW SECTION */
-.withdraw-section {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(129, 199, 132, 0.03) 100%);
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  border-radius: 16px;
-  padding: 30px;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.withdraw-section h2 {
-  font-size: 20px;
-  margin-bottom: 20px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.withdraw-section p {
-  color: #b0bec5;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-
-/* BACK BUTTON */
-.back-btn {
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px solid #4caf50;
-  color: #81c784;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  margin-bottom: 20px;
-  display: inline-block;
-}
-
-.back-btn:hover {
-  background: rgba(76, 175, 80, 0.2);
-  transform: translateY(-2px);
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .hero h1 {
-    font-size: 32px;
-  }
-
-  .big-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .big-card img {
-    margin-top: 20px;
-    width: 100px;
-    height: 100px;
-  }
-
-  .navbar {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ANIMATIONS */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.card, .big-card, .stats-section, .referral-section, .withdraw-section {
-  animation: fadeIn 0.6s ease-out;
-}
-
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-  <div class="navbar-brand">💰 Freecash</div>
-  <div class="navbar-right">
-    <div class="balance-badge">Balance: <span id="saldo">$0.00</span></div>
-    <button class="logout-btn" onclick="logout()">🚪 Salir</button>
+<div class="header">
+  <h1>Ingresos adicionales fáciles</h1>
+  <span>Nivel: <span id="nivel">1</span> 🚀</span>
+</div>
+
+<!-- CARDS -->
+<div class="top-cards">
+  <div class="top-card" onclick="abrirJuego('ruleta')">
+    <h3>Jugar juegos</h3>
+  </div>
+
+  <div class="top-card" onclick="abrirEncuestas()">
+    <h3>Encuestas</h3>
+  </div>
+
+  <div class="top-card" onclick="abrirEncuestas()">
+    <h3>Ofertas</h3>
   </div>
 </div>
 
-<!-- MAIN CONTAINER -->
-<div class="container">
-
-  <!-- HERO SECTION -->
-  <div class="hero">
-    <h1>Ingresos adicionales fáciles</h1>
-    <p>Gana dinero completando tareas simples</p>
-    <p class="subtitle">Hoy: <span id="today">$0.00</span></p>
-  </div>
-
-  <!-- TOP CARDS -->
-  <div class="cards-grid">
-    <div class="card" onclick="abrirJuego('ruleta')">
-      <div class="card-icon">🎮</div>
-      <h3>Jugar juegos</h3>
-      <p>$0.50 - $120</p>
-      <button class="btn btn-primary">Comenzar</button>
-    </div>
-
-    <div class="card" onclick="abrirEncuestas()">
-      <div class="card-icon">📋</div>
-      <h3>Encuestas</h3>
-      <p>$0.50 - $6</p>
-      <button class="btn btn-primary">Comenzar</button>
-    </div>
-
-    <div class="card" onclick="abrirEncuestas()">
-      <div class="card-icon">🎁</div>
-      <h3>Ofertas</h3>
-      <p>$1 - $75</p>
-      <button class="btn btn-primary">Comenzar</button>
-    </div>
-  </div>
-
-  <!-- APPS CAROUSEL -->
-  <div class="apps-section">
-    <h2>Retira a tus plataformas favoritas</h2>
-    <div class="apps-carousel">
-      <div class="app-item"><img src="https://img.icons8.com/color/48/netflix.png" alt="Netflix"></div>
-      <div class="app-item"><img src="https://img.icons8.com/color/48/paypal.png" alt="PayPal"></div>
-      <div class="app-item"><img src="https://img.icons8.com/color/48/amazon.png" alt="Amazon"></div>
-      <div class="app-item"><img src="https://img.icons8.com/color/48/steam.png" alt="Steam"></div>
-      <div class="app-item"><img src="https://img.icons8.com/color/48/google-play.png" alt="Google Play"></div>
-    </div>
-  </div>
-
-  <!-- BIG CARDS -->
-  <div class="big-cards-section">
-    <div class="big-card">
-      <div class="big-card-content">
-        <h3>🎮 Gana dinero jugando</h3>
-        <p>Disfruta de juegos entretenidos y gana dinero real mientras juegas</p>
-        <button class="btn btn-primary" onclick="abrirJuego('ruleta')">Ir a Juegos</button>
-      </div>
-      <img src="https://i.imgur.com/2DhmtJ4.png" alt="Games">
-    </div>
-
-    <div class="big-card">
-      <div class="big-card-content">
-        <h3>📝 Completa encuestas</h3>
-        <p>Comparte tu opinión y gana recompensas por cada encuesta completada</p>
-        <button class="btn btn-primary" onclick="abrirEncuestas()">Ir a Encuestas</button>
-      </div>
-      <img src="https://i.imgur.com/2DhmtJ4.png" alt="Surveys">
-    </div>
-  </div>
-
-  <!-- STATS SECTION -->
-  <div class="stats-section">
-    <h2 style="margin-bottom: 20px; color: #ffffff; font-weight: 600;">📊 Estadísticas</h2>
-    <div class="stats-grid">
-      <div class="stat-item">
-        <h4>Total Ganado</h4>
-        <div class="value" id="total">$0</div>
-      </div>
-      <div class="stat-item">
-        <h4>Hoy</h4>
-        <div class="value" id="today2">$0</div>
-      </div>
-      <div class="stat-item">
-        <h4>Balance Actual</h4>
-        <div class="value" id="balance">$0.00</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- REFERRAL SECTION -->
-  <div class="referral-section">
-    <h2>🔗 Programa de Referidos</h2>
-    <p style="color: #b0bec5; margin-bottom: 20px;">Comparte tu enlace y gana comisiones de tus amigos</p>
-    <div class="referral-input-group">
-      <input id="refLink" type="text" readonly placeholder="Tu enlace de referido">
-      <button class="btn btn-primary" onclick="copiarRef()">📋 Copiar</button>
-    </div>
-    <div class="referral-stats">
-      <div class="referral-stat">
-        <p>Referidos</p>
-        <div class="value">0</div>
-      </div>
-      <div class="referral-stat">
-        <p>Comisión Ganada</p>
-        <div class="value">$0.00</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WITHDRAW SECTION -->
-  <div class="withdraw-section">
-    <h2>💳 Retirar Ganancias</h2>
-    <p>Retira tu saldo cuando hayas ganado al menos $5</p>
-    <button class="btn btn-primary" onclick="retirar()">Solicitar Retiro</button>
-  </div>
-
+<!-- SALDO -->
+<div style="text-align:center;">
+  <h2 id="saldo">$0.00</h2>
+  <p>Hoy: <span id="today">$0.00</span></p>
 </div>
 
-<!-- CPX RESEARCH -->
+<!-- REFERIDOS -->
+<div style="text-align:center;">
+  <input id="refLink" style="width:90%; padding:10px;" readonly>
+  <button class="btn" onclick="copiarRef()">Copiar</button>
+</div>
+
+<!-- LEADERBOARD -->
+<div style="text-align:center; margin-top:20px;">
+  <h3>🏆 Ranking</h3>
+  <ul id="ranking"></ul>
+</div>
+
+<!-- MISIONES -->
+<div style="text-align:center; margin-top:20px;">
+  <h3>🎯 Misiones</h3>
+  <button class="btn" onclick="mision()">Completar misión (+$0.20)</button>
+</div>
+
+<!-- BOTONES -->
+<div style="text-align:center; margin:20px;">
+  <button class="btn" onclick="retirar()">💳 Retirar</button>
+  <button class="btn" onclick="logout()">🚪 Salir</button>
+</div>
+
+<!-- CPX -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script>
 const CPX_APP_ID = "32070";
 const CPX_API_KEY = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
 
+/* 🔥 CONEXIÓN REAL (MISMO ID PARA TODO) */
 function getUserId() {
-  let id = localStorage.getItem("cpx_user_id");
+  let id = localStorage.getItem("user_id");
+
   if (!id) {
-    id = "srv-" + Math.random().toString(36).substring(2, 15);
-    localStorage.setItem("cpx_user_id", id);
+    id = "user-" + Math.random().toString(36).substring(2, 12);
+    localStorage.setItem("user_id", id);
   }
+
   return id;
 }
 
+/* 🔥 ABRIR ENCUESTAS (ARREGLADO) */
 function abrirEncuestas() {
   const user_id = getUserId();
   const hash = CryptoJS.MD5(user_id + CPX_API_KEY).toString();
@@ -670,18 +155,21 @@ function abrirEncuestas() {
   const url = `https://offers.cpx-research.com/index.php?app_id=${CPX_APP_ID}&ext_user_id=${user_id}&secure_hash=${hash}`;
 
   document.body.innerHTML = `
-    <button class="back-btn" onclick="location.reload()">⬅ Volver</button>
-    <iframe src="${url}" style="width:100%;height:calc(100vh - 60px);border:none;"></iframe>
+    <button onclick="location.reload()">⬅ Volver</button>
+    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
   `;
 }
 
-// REFERIDOS
+/* 🎯 REFERIDO */
 const myId = getUserId();
-document.getElementById("refLink").value = `${window.location.origin}?ref=${myId}`;
+
+window.onload = () => {
+  document.getElementById("refLink").value = `${window.location.origin}?ref=${myId}`;
+};
 
 function copiarRef(){
   navigator.clipboard.writeText(document.getElementById("refLink").value);
-  alert("✅ Enlace copiado al portapapeles");
+  alert("Copiado 🚀");
 }
 
 // RETIRO
@@ -691,66 +179,147 @@ function retirar(){
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ user_id: getUserId() })
   })
-  .then(()=> alert("✅ Solicitud de retiro enviada"));
+  .then(()=> alert("Solicitud enviada"));
 }
 
 function abrirJuego(nombre){
-  window.location.href = "game-" + nombre + ".html";
-}
-
-// LOGOUT
-function logout(){
-  localStorage.removeItem("cpx_user_id");
-  alert("👋 Sesión cerrada");
-  window.location.href = "index.html";
+  location.href = "game-" + nombre + ".html";
 }
 </script>
 
-<!-- FIREBASE -->
+<!-- FIREBASE PRO -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore, doc, onSnapshot, updateDoc,
+  increment, collection, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
+const app = initializeApp({
   apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
   authDomain: "rutarizador-v12.firebaseapp.com",
   projectId: "rutarizador-v12"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const userId = localStorage.getItem("cpx_user_id");
-const userRef = doc(db, "users", userId);
-
-// REALTIME UPDATES
-onSnapshot(userRef, (docSnap) => {
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    const earnings = (data.earnings || 0).toFixed(2);
-    const today = (data.today || 0).toFixed(2);
-    
-    document.getElementById("saldo").innerText = "$" + earnings;
-    document.getElementById("today").innerText = "$" + today;
-    document.getElementById("today2").innerText = "$" + today;
-    document.getElementById("total").innerText = "$" + (data.earnings || 0);
-    document.getElementById("balance").innerText = "$" + earnings;
-  }
 });
 
-// DAILY BONUS
-const today = new Date().toDateString();
-const last = localStorage.getItem("daily_bonus");
+const db = getFirestore(app);
+const userId = localStorage.getItem("cpx_user_id");
+const ref = doc(db, "users", userId);
 
-if (last !== today) {
-  await updateDoc(userRef, {
-    earnings: increment(0.50),
-    today: increment(0.50)
-  });
+// REALTIME
+onSnapshot(ref, (docSnap) => {
+  if (!docSnap.exists()) return;
 
-  localStorage.setItem("daily_bonus", today);
-  alert("🎁 Bono diario de $0.50 recibido");
-}
+  const d = docSnap.data();
+
+  document.getElementById("saldo").innerText = "$" + (d.earnings || 0).toFixed(2);
+  document.getElementById("today").innerText = "$" + (d.today || 0).toFixed(2);
+
+  // NIVEL
+  const nivel = Math.floor((d.earnings || 0) / 10) + 1;
+  document.getElementById("nivel").innerText = nivel;
+});
+
+// MISION
+import { setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+await setDoc(userRef, {
+  earnings: increment(0.50),
+  today: increment(0.50)
+}, { merge: true });
+
+// LEADERBOARD
+const snap = await getDocs(collection(db, "users"));
+let list = "";
+
+snap.forEach(u => {
+  const data = u.data();
+  list += `<li>$${(data.earnings||0).toFixed(2)}</li>`;
+});
+
+document.getElementById("ranking").innerHTML = list;
+
+// ANTI FRAUDE
+let clicks = 0;
+document.body.addEventListener("click", () => {
+  clicks++;
+  if (clicks > 100) {
+    alert("⚠️ Actividad sospechosa");
+  }
+});
+</script>
+
+<!-- LOGOUT -->
+<script type="module">
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+const auth = getAuth();
+
+window.logout = async () => {
+  await signOut(auth);
+  localStorage.removeItem("cpx_user_id");
+  location.href = "index.html";
+};
+
+</script>
+<!-- CPX SCRIPT PRO -->
+<div id="fullscreen"></div>
+<div id="notification"></div>
+<div id="notification2"></div>
+
+<script>
+const userId = localStorage.getItem("cpx_user_id") || getUserId();
+
+window.config = {
+  general_config: {
+    app_id: 32070,
+    ext_user_id: userId,
+    email: "",
+    username: userId,
+    secure_hash: ""
+  },
+
+  style_config: {
+    text_color: "#00ff88",
+    survey_box: {
+      topbar_background_color: "#00ff88",
+      box_background_color: "#0b1a12",
+      rounded_borders: true,
+      stars_filled: "#00ff88"
+    }
+  },
+
+  script_config: [
+    {
+      div_id: "fullscreen",
+      theme_style: 1,
+      order_by: 2,
+      limit_surveys: 7
+    },
+    {
+      div_id: "notification",
+      theme_style: 4,
+      position: 5
+    },
+    {
+      div_id: "notification2",
+      theme_style: 4,
+      position: 6
+    }
+  ],
+
+  useIFrame: true,
+
+  functions: {
+    get_transaction: (tx) => {
+      console.log("💰 GANANCIA DETECTADA:", tx);
+    }
+  }
+};
+
+// cargar script
+const s = document.createElement("script");
+s.src = "https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js";
+document.body.appendChild(s);
 </script>
 
 </body>
