@@ -20,8 +20,14 @@ app.get("/", (req, res) => {
 /* =========================
 🔥 FIREBASE
 ========================= */
+const rawKey = process.env.FIREBASE_KEY;
+
+if (!rawKey) {
+  throw new Error("❌ FIREBASE_KEY no está definido en Render");
+}
+
 const serviceAccount = JSON.parse(
-  process.env.FIREBASE_KEY.replace(/\\n/g, '\n')
+  rawKey.replace(/\\n/g, '\n')
 );
 
 admin.initializeApp({
