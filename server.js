@@ -27,7 +27,9 @@ if (!rawKey) {
 }
 
 const serviceAccount = JSON.parse(
-  rawKey.replace(/\\n/g, '\n')
+  process.env.FIREBASE_KEY
+    .replace(/\n/g, '\\n')
+    .replace(/\\n/g, '\n')
 );
 
 admin.initializeApp({
