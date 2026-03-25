@@ -5,6 +5,8 @@ import { doc, setDoc } from "firebase/firestore";
 const btn = document.getElementById("register");
 
 btn.addEventListener("click", async () => {
+  console.log("click funcionando");
+});
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
@@ -20,7 +22,7 @@ btn.addEventListener("click", async () => {
       createdAt: new Date()
     });
 
-    console.log("Usuario guardado en Firestore");
+    console.log("script conectado");
 
   } catch (error) {
     console.error(error);
