@@ -165,14 +165,15 @@ window.login = async function(){
     const snap = await getDoc(userRef);
 
     if (!snap.exists()){
-      await setDoc(userRef, {
-        email: user.email,
-        balance: 0,
-        createdAt: new Date()
-      });
+     await setDoc(userRef, {
+  email: user.email,
+  earnings: 0,
+  createdAt: new Date()
+});
     }
 
     alert("Login correcto ✅");
+    localStorage.setItem("uid", user.uid)
     window.location.href = "dashboard.html";
 
   }catch(e){
@@ -199,11 +200,11 @@ window.register = async function(){
 
     // 🔥 GUARDAR EN FIRESTORE
     await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      balance: 0,
-      referral: document.getElementById("referralCode").value || null,
-      createdAt: new Date()
-    });
+  email: user.email,
+  earnings: 0,
+  referredBy: document.getElementById("referralCode").value || null,
+  createdAt: new Date()
+});
 
     alert("Cuenta creada y guardada 🔥");
 
@@ -212,9 +213,7 @@ window.register = async function(){
     alert(e.message);
   }
 };
-    window.bonus = async function(){
-  console.log("BONUS CLICK");
-
+  window.bonus = async function(){
   const user = currentUser;
 
   if (!user){
@@ -223,46 +222,24 @@ window.register = async function(){
   }
 
   try{
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
-
-    if (!snap.exists()){
-      alert("Usuario no encontrado");
-      return;
-    }
-
-    const data = snap.data();
-
-    // 🔧 asegurar balance
-    if (data.balance === undefined){
-      data.balance = 0;
-    }
-
-    // ⏱️ Control 1 vez por día
-    const now = Date.now();
-    const lastBonus = data.lastBonus || 0;
-    const ONE_DAY = 86400000;
-
-    if (now - lastBonus < ONE_DAY){
-      alert("Ya reclamaste tu bonus hoy ❌");
-      return;
-    }
-
-    // 💰 SUMAR DINERO
-    const newBalance = data.balance + 10;
-
-    await updateDoc(userRef, {
-      balance: newBalance,
-      lastBonus: now
+    const res = await fetch("/daily-bonus", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ user_id: user.uid })
     });
 
-    alert("Ganaste 10 💰");
+    const text = await res.text();
+    alert(text);
 
   }catch(e){
     console.error(e);
     alert("Error en bonus");
   }
 };
+
+
 
 // 🎯 REFERIDO URL
 const params = new URLSearchParams(window.location.search);
