@@ -26,11 +26,21 @@ if (!rawKey) {
   throw new Error("❌ FIREBASE_KEY no está definido en Render");
 }
 
-const serviceAccount = JSON.parse(
-  process.env.FIREBASE_KEY
-    .replace(/\n/g, '\\n')
-    .replace(/\\n/g, '\n')
-);
+let serviceAccount;
+
+try {
+  serviceAccount = JSON.parse(rawKey);
+} catch (e) {
+  try {
+    serviceAccount = JSON.parse(
+      rawKey.replace(/\\n/g, '\n')
+    );
+  } catch (err) {
+    console.error("🔥 ERROR PARSE FIREBASE_KEY");
+    console.error(rawKey);
+    throw err;
+  }
+}
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
