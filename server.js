@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const express = require("express");
 const path = require("path");
 const admin = require("firebase-admin");
@@ -30,13 +31,45 @@ const db = admin.firestore();
 ========================= */
 app.get("/cpx-postback", async (req, res) => {
   try {
-    const { ext_user_id, trans_id, reward_value } = req.query;
+  const { ext_user_id, trans_id, reward_value, secure_hash } = req.query;
+    
+  if (!ext_user_id || !trans_id || !reward_value || !secure_hash) {
+  return res.status(400).send("Datos faltantes ❌");
+}
 
-    if (!ext_user_id || !trans_id || !reward_value) {
-      return res.status(400).send("Datos faltantes ❌");
+    const reward = parseFloat(reward_value);
+if (isNaN(reward)) {
+  return res.status(400).send("Reward inválido");
+}
+
+if (reward > 5 || reward <= 0) {
+  console.log("🚨 Reward sospechoso:", reward);
+  return res.send("Fraude detectado");
+}
+
+  const API_KEY = "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS";
+
+    const expectedHash = crypto
+      .createHash("md5")
+      .update(ext_user_id + API_KEY)
+      .digest("hex");
+
+    if (secure_hash !== expectedHash) {
+      console.log("❌ Hash inválido - posible fraude");
+      return res.status(403).send("Invalid hash");
     }
 
-    const reward = Number(reward_value);
+const ua = req.headers["user-agent"] || "";
+
+if (
+  ua.includes("bot") ||
+  ua.includes("curl") ||
+  ua.includes("spider") ||
+  ua.length < 20
+) {
+  console.log("🤖 Bot detectado:", ua);
+  return res.send("Bot bloqueado");
+}
 
     console.log("📥 POSTBACK:", ext_user_id, reward);
 
@@ -51,7 +84,24 @@ app.get("/cpx-postback", async (req, res) => {
     /* 👤 USUARIO */
     const userRef = db.collection("users").doc(ext_user_id);
     const userDoc = await userRef.get();
-    const userData = userDoc.exists ? userDoc.data() : {};
+
+if (!userDoc.exists) {
+  await userRef.set({
+    earnings: 0,
+    today: 0,
+    xp: 0,
+    level: 0,
+    referredBy: null // 👈 importante para evitar errores
+  });
+}
+
+  const updatedDoc = await userRef.get();
+const userData = updatedDoc.data();
+
+if ((userData.today || 0) >= 5) {
+  console.log("⚠️ Límite diario alcanzado");
+  return res.send("Límite diario alcanzado");
+}
 
     /* 🎮 XP + NIVEL */
     const xp = reward * 10;
@@ -65,29 +115,66 @@ app.get("/cpx-postback", async (req, res) => {
 
     const finalReward = reward * multiplier;
 
-    /* 💰 SUMAR GANANCIAS */
+const userIp = (req.headers["x-forwarded-for"] || req.socket.remoteAddress)
+  .split(",")[0]
+  .trim();
+
+const ipQuery = await db.collection("users")
+  .where("ip", "==", userIp)
+  .get();
+
+const uniqueUsers = ipQuery.docs.filter(doc => doc.id !== ext_user_id);
+
+if (uniqueUsers.length >= 3 && reward > 1) {
+  console.log("🚨 IP sospechosa + reward alto:", userIp);
+  return res.send("Fraude detectado");
+}
+
+if (uniqueUsers.length >= 5) {
+  console.log("🚫 Muchas cuentas desde esta IP:", userIp);
+  return res.send("Bloqueado por IP");
+}
+
+/* ✅ AQUÍ VA */
+await db.collection("ip_logs").add({
+  ip: userIp,
+  user: ext_user_id,
+  reward: reward,
+  ua: ua,
+  createdAt: new Date()
+});
+
+     /* 💰 SUMAR GANANCIAS */
     await userRef.set({
       earnings: admin.firestore.FieldValue.increment(finalReward),
       today: admin.firestore.FieldValue.increment(finalReward),
       xp: admin.firestore.FieldValue.increment(xp),
       level: level,
       multiplier: multiplier,
-      ip: req.ip,
+      ip: userIp,
       userAgent: req.headers["user-agent"]
     }, { merge: true });
 
     /* 🎯 REFERIDOS (10%) */
-    if (userData.referredBy) {
-      const referrerRef = db.collection("users").doc(userData.referredBy);
+  if (
+  userData.referredBy &&
+  userData.referredBy !== ext_user_id &&
+  !userData.refPaid // 👈 NUEVO
+) {
+  const referrerRef = db.collection("users").doc(userData.referredBy);
 
-      const bonus = reward * 0.10;
+  const bonus = reward * 0.10;
 
-      await referrerRef.set({
-        earnings: admin.firestore.FieldValue.increment(bonus)
-      }, { merge: true });
+  await referrerRef.set({
+    earnings: admin.firestore.FieldValue.increment(bonus)
+  }, { merge: true });
 
-      console.log("🎯 Bono referido:", bonus);
-    }
+  await userRef.set({
+    refPaid: true // 👈 SOLO paga una vez
+  }, { merge: true });
+
+  console.log("🎯 Bono referido:", bonus);
+}
 
     /* 🏆 RANKING */
     await db.collection("ranking").doc(ext_user_id).set({
