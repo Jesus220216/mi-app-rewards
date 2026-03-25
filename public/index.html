@@ -120,9 +120,13 @@ import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstati
 
 // 🔥 CONFIG
 const app = initializeApp({
- apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
+  apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
   projectId: "mi-app-rewards-rd",
+  storageBucket: "mi-app-rewards-rd.firebasestorage.app",
+  messagingSenderId: "862164914639",
+  appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
+  measurementId: "G-9BMKB6QNV2"
 });
 
 const auth = getAuth(app);
