@@ -143,7 +143,6 @@ const app = initializeApp({
 });
 
 const auth = getAuth(app);
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let currentUser = null;
 
@@ -270,7 +269,11 @@ if(ref){
   localStorage.setItem("referrer_id", ref);
   document.getElementById("referralCode").value = ref;
 }
-
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnLogin").addEventListener("click", window.login);
+  document.getElementById("btnRegister").addEventListener("click", window.register);
+  document.getElementById("btnBonus").addEventListener("click", window.bonus);
+});
 </script>
 
 </body>
