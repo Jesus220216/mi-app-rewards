@@ -181,15 +181,19 @@ window.login = async function(){
     const snap = await getDoc(userRef);
 
     if (!snap.exists()){
-     await setDoc(userRef, {
-  email: user.email,
-  earnings: 0,
-  createdAt: new Date()
-});
+      await setDoc(userRef, {
+        email: user.email,
+        earnings: 0,
+        createdAt: new Date()
+      });
     }
 
-    alert("Login correcto ✅");
-    localStorage.setItem("uid", user.uid)
+    // ❌ QUITAMOS EL ALERT
+    // alert("Login correcto ✅");
+
+    localStorage.setItem("uid", user.uid);
+
+    // ✅ REDIRECCIÓN DIRECTA
     window.location.href = "dashboard.html";
 
   }catch(e){
@@ -197,7 +201,6 @@ window.login = async function(){
     alert(e.message);
   }
 };
-
 // 🆕 REGISTER
 window.register = async function(){
   console.log("REGISTER CLICK");
