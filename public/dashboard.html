@@ -1163,7 +1163,14 @@ window.retirar = function(){
 🚪 LOGOUT
 ========================= */
 window.logout = function(){
-  location.reload();
+  signOut(auth)
+    .then(() => {
+      window.location.href = "index.html"; // lo manda al login
+    })
+    .catch((error) => {
+      alert("Error al cerrar sesión");
+      console.error(error);
+    });
 };
 </script>
 
