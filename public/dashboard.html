@@ -988,7 +988,7 @@ let currentUser = null;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
@@ -1133,7 +1133,7 @@ function initReferral() {
   if (ref && ref !== getUserId() && !localStorage.getItem("ref_applied")) {
     localStorage.setItem("ref_applied", ref);
 
-    fetch(BASE_URL + "/referral", {
+    fetch("https://us-central1-mi-app-rewards-rd.cloudfunctions.net/referral", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -1151,7 +1151,7 @@ function initReferral() {
 💳 RETIRO
 ========================= */
 window.retirar = function(){
-  fetch(BASE_URL + "/withdraw", {
+  fetch("https://us-central1-mi-app-rewards-rd.cloudfunctions.net/withdraw", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ user_id: getUserId() })
