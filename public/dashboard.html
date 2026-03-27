@@ -1148,6 +1148,9 @@ function getUserId() {
   }
   return id;
 }
+  async function getToken() {
+  return await currentUser.getIdToken();
+}
 
 // 🔹 INIT USER + REFERIDOS
 async function initUser(uid) {
