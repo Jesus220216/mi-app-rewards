@@ -1163,18 +1163,29 @@ window.retirar = function(){
 /* =========================
 🚪 LOGOUT (ARREGLADO)
 ========================= */
-window.logout = function(){
+window.logout = async function(){
   console.log("Cerrando sesión...");
 
-  signOut(auth)
-    .then(() => {
-     
-      window.location.href = "index.html";
-    })
-    .catch((error) => {
-      alert("Error al cerrar sesión ❌");
-      console.error(error);
-    });
+  try {
+    // 🔌 Forzar desconexión de Firestore
+    await fetch("https://us-central1-mi-app-rewards-rd.cloudfunctions.net/ping");
+
+    // 🔐 Cerrar sesión
+    await signOut(auth);
+
+    // 🧹 Limpiar cache local
+    localStorage.clear();
+    sessionStorage.clear();
+
+    alert("Sesión cerrada ✅");
+
+    // 🔄 Recargar completamente
+    window.location.href = "index.html";
+
+  } catch (error) {
+    console.error(error);
+    alert("Error al cerrar sesión ❌");
+  }
 };
 </script>
 
