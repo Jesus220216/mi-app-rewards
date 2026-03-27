@@ -1159,16 +1159,20 @@ window.retirar = function(){
   .then(()=> alert("✅ Retiro solicitado"));
 };
 
+
 /* =========================
-🚪 LOGOUT
+🚪 LOGOUT (ARREGLADO)
 ========================= */
 window.logout = function(){
+  console.log("Cerrando sesión...");
+
   signOut(auth)
     .then(() => {
-      window.location.href = "index.html"; // lo manda al login
+      alert("Sesión cerrada ✅");
+      window.location.href = "index.html";
     })
     .catch((error) => {
-      alert("Error al cerrar sesión");
+      alert("Error al cerrar sesión ❌");
       console.error(error);
     });
 };
