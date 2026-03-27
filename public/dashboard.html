@@ -1242,64 +1242,43 @@ async function initUser() {
 }
 
 initUser();
+<script>
+
+// 📋 ENCUESTAS
+window.abrirEncuestas = function(){
+  alert("🚧 Encuestas próximamente");
+};
+
+// 🎮 JUEGO (ya lo usas pero asegúralo)
+window.abrirJuego = function(juego){
+  alert("🎮 Abriendo juego: " + juego);
+};
+
+// 🚪 LOGOUT (IMPORTANTE)
+window.logout = async function(){
+  try{
+    const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+
+    const auth = getAuth();
+    await signOut(auth);
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    alert("Sesión cerrada ✅");
+
+    window.location.href = "index.html";
+
+  }catch(e){
+    console.error(e);
+    alert("Error al cerrar sesión ❌");
+  }
+};
+
 </script>
 
-  // ✅ ANTI FRAUDE
-    localStorage.removeItem("ref_applied");
-  }
-}
-
-
-// ✅ 1. CAPTURAR REFERIDO (cuando alguien entra)
-const urlParams = new URLSearchParams(window.location.search);
-const ref = urlParams.get("ref");
-
-if (ref) {
-  localStorage.setItem("ref_applied", ref);
-}
-
-// ✅ 2. CREAR USUARIO + GUARDAR REFERIDO
-const userId = getUserId();
-const userRef = doc(db, "users", userId);
-const referrerId = localStorage.getItem("ref_applied");
-const referrerRef = referrerId ? doc(db, "users", referrerId) : null;
-
-
-
-  // REALTIME UPDATES - Mostrar datos en tiempo real
-onSnapshot(userRef, (docSnap) => {
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    const earnings = (data.earnings || 0).toFixed(2);
-    const today = (data.today || 0).toFixed(2);
-    
-    document.getElementById("saldo").innerText = "$" + earnings;
-    document.getElementById("today").innerText = "$" + today;
-    document.getElementById("today2").innerText = "$" + today;
-    document.getElementById("total").innerText = "$" + (data.earnings || 0);
-    document.getElementById("balance").innerText = "$" + earnings;
-  }
-});
-
-// DAILY BONUS
-const today = new Date().toDateString();
-const last = localStorage.getItem("daily_bonus");
-
-if (last !== today) {
-  await updateDoc(userRef, {
-    earnings: increment(0.50),
-    today: increment(0.50)
-  });
-
-  localStorage.setItem("daily_bonus", today);
-  alert("🎁 Bono diario de $0.50 recibido");
-}
-</script>
 
 </body>
 </html>
 
-</script>
 
-</body>
-</html>
