@@ -991,11 +991,15 @@ import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } f
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
-  projectId: "mi-app-rewards-rd"
+  projectId: "mi-app-rewards-rd",
+  storageBucket: "mi-app-rewards-rd.firebasestorage.app",
+  messagingSenderId: "862164914639",
+  appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
+  measurementId: "G-9BMKB6QNV2"
 };
-
+  
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
@@ -1161,135 +1165,6 @@ window.retirar = function(){
 window.logout = function(){
   location.reload();
 };
-</script>
-
-<!-- FIREBASE - SISTEMA DE REFERIDOS PRO -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-  const firebaseConfig = {
-  apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
-  authDomain: "mi-app-rewards-rd.firebaseapp.com",
-  projectId: "mi-app-rewards-rd",
-  storageBucket: "mi-app-rewards-rd.firebasestorage.app",
-  messagingSenderId: "862164914639",
-  appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
-  measurementId: "G-9BMKB6QNV2"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// 🔹 USER ID
-function getUserId() {
-  return currentUser ? currentUser.uid : null;
-}
-  if (!id) {
-    id = "usr-" + Math.random().toString(36).substring(2, 12);
-    localStorage.setItem("user_id", id);
-  }
-  return id;
-}
-  async function getToken() {
-  return await currentUser.getIdToken();
-}
-
-// 🔹 INIT USER + REFERIDOS
-async function initUser(uid) {
-  const userRef = doc(db, "users", uid);
-
-  const snap = await getDoc(userRef);
-
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      earnings: 0,
-      today: 0,
-      createdAt: new Date()
-    });
-  }
-
-  // REALTIME
-  onSnapshot(userRef, (docSnap) => {
-    const data = docSnap.data();
-
-    document.getElementById("saldo").innerText = "$" + (data.earnings || 0).toFixed(2);
-    document.getElementById("today").innerText = "$" + (data.today || 0).toFixed(2);
-    document.getElementById("today2").innerText = "$" + (data.today || 0).toFixed(2);
-    document.getElementById("total").innerText = "$" + (data.earnings || 0);
-    document.getElementById("balance").innerText = "$" + (data.earnings || 0).toFixed(2);
-  });
-}
-
- 
-
-  // 🎁 BONUS DIARIO
- async function bonus() {
-  const userRef = doc(db, "users", currentUser.uid);
-
-  const today = new Date().toDateString();
-  const last = localStorage.getItem("daily_bonus");
-
-  if (last === today) {
-    alert("Ya reclamaste hoy");
-    return;
-  }
-
-  await updateDoc(userRef, {
-    earnings: increment(0.50),
-    today: increment(0.50)
-  });
-
-  localStorage.setItem("daily_bonus", today);
-  alert("🎁 Ganaste $0.50"); 
-}
-
-// ✅ 1. CAPTURAR REFERIDO (cuando alguien entra)
-const urlParams = new URLSearchParams(window.location.search);
-const ref = urlParams.get("ref");
-
-if (ref && !localStorage.getItem("ref_applied"))
-}
-
-// ✅ 2. CREAR USUARIO + GUARDAR REFERIDO
-const userId = getUserId();
-const userRef = doc(db, "users", userId);
-const referrerId = localStorage.getItem("ref_applied");
-const referrerRef = referrerId ? doc(db, "users", referrerId) : null;
-
-
-
-  // REALTIME UPDATES - Mostrar datos en tiempo real
-onSnapshot(userRef, (docSnap) => {
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    const earnings = (data.earnings || 0).toFixed(2);
-    const today = (data.today || 0).toFixed(2);
-    
-    document.getElementById("saldo").innerText = "$" + earnings;
-    document.getElementById("today").innerText = "$" + today;
-    document.getElementById("today2").innerText = "$" + today;
-    document.getElementById("total").innerText = "$" + (data.earnings || 0);
-    document.getElementById("balance").innerText = "$" + earnings;
-  }
-});
-
-// DAILY BONUS
-async function giveDailyBonus() {
-  const today = new Date().toDateString();
-  const last = localStorage.getItem("daily_bonus");
-
-  if (last !== today) {
-    await updateDoc(userRef, {
-      earnings: increment(0.50),
-      today: increment(0.50)
-    });
-
-    localStorage.setItem("daily_bonus", today);
-    alert("🎁 Bono diario de $0.50 recibido");
-  }
-}
 </script>
 
 </body>
