@@ -971,44 +971,92 @@ body {
   </div>
 </div>
 
-<!-- CPX RESEARCH -->
+<!-- CPX + CONFIG -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-const BASE_URL = "https://us-central1-mi-app-rewards-rd.cloudfunctions.net";
+
 <script>
+const BASE_URL = "https://us-central1-mi-app-rewards-rd.cloudfunctions.net";
 const CPX_APP_ID = "32070";
 const CPX_API_KEY = "TU_API_KEY";
-</script>
 
 let currentGame = null;
 let currentVideo = null;
+let currentUser = null;
+</script>
 
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "mi-app-rewards-rd.firebaseapp.com",
+  projectId: "mi-app-rewards-rd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 const auth = getAuth();
 
-let currentUser = null;
-
-onAuthStateChanged(auth, (user) => {
+/* =========================
+🔐 AUTH
+========================= */
+onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
-    initUser(user.uid);
+    await initUser(user.uid);
+    initReferral();
   } else {
     window.location.href = "index.html";
   }
 });
 
+/* =========================
+👤 USER ID
+========================= */
+function getUserId() {
+  return currentUser ? currentUser.uid : null;
+}
 
+/* =========================
+👤 INIT USER
+========================= */
+async function initUser(uid) {
+  const userRef = doc(db, "users", uid);
+  const snap = await getDoc(userRef);
+
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      earnings: 0,
+      today: 0,
+      createdAt: new Date()
+    });
+  }
+
+  // 🔄 REALTIME
+  onSnapshot(userRef, (docSnap) => {
+    const data = docSnap.data();
+
+    document.getElementById("saldo").innerText = "$" + (data.earnings || 0).toFixed(2);
+    document.getElementById("today").innerText = "$" + (data.today || 0).toFixed(2);
+    document.getElementById("today2").innerText = "$" + (data.today || 0).toFixed(2);
+    document.getElementById("total").innerText = "$" + (data.earnings || 0);
+    document.getElementById("balance").innerText = "$" + (data.earnings || 0).toFixed(2);
+  });
+}
 
 /* =========================
 🎮 JUEGOS
 ========================= */
-function completeGame() {
+window.completeGame = function () {
   if (!currentGame) return;
 
-if (localStorage.getItem("played_" + currentGame)) {
-  alert("⚠️ Ya jugaste este juego");
-  return;
-}
+  if (localStorage.getItem("played_" + currentGame)) {
+    alert("⚠️ Ya jugaste este juego");
+    return;
+  }
 
   localStorage.setItem("played_" + currentGame, true);
 
@@ -1026,25 +1074,24 @@ if (localStorage.getItem("played_" + currentGame)) {
     alert(msg);
     closeGame();
   });
-}
+};
 
-function closeGame() {
+window.closeGame = function () {
   document.getElementById("gameModal").style.display = "none";
   currentGame = null;
-}
+};
 
 /* =========================
 📹 VIDEOS
 ========================= */
-function watchVideo(video) {
+window.watchVideo = function(video) {
   currentVideo = video;
   document.getElementById("videoModal").style.display = "block";
-}
+};
 
-function completeVideo() {
+window.completeVideo = function () {
   if (!currentVideo) return;
 
-  // 🛑 ANTI-FRAUDE
   if (localStorage.getItem("watched_" + currentVideo)) {
     alert("⚠️ Ya viste este video");
     return;
@@ -1052,7 +1099,7 @@ function completeVideo() {
 
   localStorage.setItem("watched_" + currentVideo, true);
 
- fetch(BASE_URL + "/reward", {
+  fetch(BASE_URL + "/reward", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
@@ -1066,12 +1113,12 @@ function completeVideo() {
     alert(msg);
     closeVideo();
   });
-}
+};
 
-function closeVideo() {
+window.closeVideo = function () {
   document.getElementById("videoModal").style.display = "none";
   currentVideo = null;
-}
+};
 
 /* =========================
 🎁 REFERIDOS
@@ -1080,7 +1127,9 @@ function initReferral() {
   const params = new URLSearchParams(window.location.search);
   const ref = params.get("ref");
 
-  if (ref && ref !== getUserId()) {
+  if (ref && ref !== getUserId() && !localStorage.getItem("ref_applied")) {
+    localStorage.setItem("ref_applied", ref);
+
     fetch(BASE_URL + "/referral", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
@@ -1098,25 +1147,21 @@ function initReferral() {
 /* =========================
 💳 RETIRO
 ========================= */
-function retirar(){
+window.retirar = function(){
   fetch(BASE_URL + "/withdraw", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ user_id: getUserId() })
   })
   .then(()=> alert("✅ Retiro solicitado"));
-}
+};
 
 /* =========================
 🚪 LOGOUT
 ========================= */
-function logout(){
-  localStorage.removeItem("user_id");
+window.logout = function(){
   location.reload();
-}
-
-/* INIT */
-initReferral();
+};
 </script>
 
 <!-- FIREBASE - SISTEMA DE REFERIDOS PRO -->
