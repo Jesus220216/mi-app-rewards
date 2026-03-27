@@ -1,14 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin</title>
+<title>Admin Panel</title>
 </head>
-<body>
+<body style="background:#0a0e27;color:white;font-family:sans-serif">
 
-<h2>Retiros</h2>
-<div id="lista"></div>
+<h1>📊 Usuarios</h1>
 
-<script type="module" src="admin.js"></script>
+<div id="users"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
+  authDomain: "mi-app-rewards-rd.firebaseapp.com",
+  projectId: "mi-app-rewards-rd",
+  storageBucket: "mi-app-rewards-rd.firebasestorage.app",
+  messagingSenderId: "862164914639",
+  appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
+  measurementId: "G-9BMKB6QNV2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const usersDiv = document.getElementById("users");
+
+onSnapshot(collection(db, "users"), (snapshot)=>{
+  usersDiv.innerHTML = "";
+
+  snapshot.forEach(doc=>{
+    const data = doc.data();
+
+    usersDiv.innerHTML += `
+      <div style="margin:10px;padding:10px;border:1px solid #4caf50">
+        <b>ID:</b> ${doc.id}<br>
+        💰 Saldo: $${data.earnings || 0}<br>
+        📅 Hoy: $${data.today || 0}
+      </div>
+    `;
+  });
+});
+</script>
 
 </body>
 </html>
