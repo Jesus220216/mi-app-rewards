@@ -987,14 +987,27 @@ let currentUser = null;
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-enableIndexedDbPersistence(db).catch((err) => {
-  console.log("Persistencia no disponible", err);
-});
-import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+  getFirestore, 
+  doc, 
+  onSnapshot, 
+  updateDoc, 
+  increment, 
+  getDoc, 
+  setDoc,
+  enableIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signOut 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+/* =========================
+🔥 FIREBASE CONFIG
+========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
@@ -1004,21 +1017,34 @@ const firebaseConfig = {
   appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
   measurementId: "G-9BMKB6QNV2"
 };
-  
+
+/* =========================
+🚀 INIT
+========================= */
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
 
 /* =========================
+📡 OFFLINE FIX (IMPORTANTE)
+========================= */
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.log("⚠️ Varias pestañas abiertas");
+  } else if (err.code === 'unimplemented') {
+    console.log("⚠️ Navegador no soporta offline");
+  }
+});
+/* =========================
 🔐 AUTH
 ========================= */
 onAuthStateChanged(auth, async (user) => {
- if (user && navigator.onLine) {
+  if (user) {
     currentUser = user;
     await initUser(user.uid);
     initReferral();
   } else {
-    window.location.href = "index.html"; // 🔐 obligatorio login
+    window.location.href = "index.html";
   }
 });
 /* =========================
@@ -1169,22 +1195,14 @@ window.retirar = function(){
 🚪 LOGOUT (ARREGLADO)
 ========================= */
 window.logout = async function(){
-  console.log("Cerrando sesión...");
-
   try {
-    // 🔌 Forzar desconexión de Firestore
-    await fetch("https://us-central1-mi-app-rewards-rd.cloudfunctions.net/ping");
-
-    // 🔐 Cerrar sesión
     await signOut(auth);
 
-    // 🧹 Limpiar cache local
     localStorage.clear();
     sessionStorage.clear();
 
     alert("Sesión cerrada ✅");
 
-    // 🔄 Recargar completamente
     window.location.href = "index.html";
 
   } catch (error) {
