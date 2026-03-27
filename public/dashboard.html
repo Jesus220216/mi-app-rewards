@@ -973,7 +973,7 @@ body {
 
 <!-- CPX RESEARCH -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
+const BASE_URL = "https://us-central1-mi-app-rewards-rd.cloudfunctions.net";
 <script>
 const CPX_APP_ID = "32070";
 const CPX_API_KEY = "TU_API_KEY";
@@ -1012,7 +1012,7 @@ if (localStorage.getItem("played_" + currentGame)) {
 
   localStorage.setItem("played_" + currentGame, true);
 
-  fetch("/reward", {
+  fetch(BASE_URL + "/reward", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
@@ -1052,7 +1052,7 @@ function completeVideo() {
 
   localStorage.setItem("watched_" + currentVideo, true);
 
-  fetch("/reward", {
+ fetch(BASE_URL + "/reward", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
@@ -1081,7 +1081,7 @@ function initReferral() {
   const ref = params.get("ref");
 
   if (ref && ref !== getUserId()) {
-    fetch("/referral", {
+    fetch(BASE_URL + "/referral", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -1099,7 +1099,7 @@ function initReferral() {
 💳 RETIRO
 ========================= */
 function retirar(){
-  fetch("/withdraw", {
+  fetch(BASE_URL + "/withdraw", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ user_id: getUserId() })
