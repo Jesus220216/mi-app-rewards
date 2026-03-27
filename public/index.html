@@ -217,32 +217,31 @@ window.register = async function(){
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // 🔥 GUARDAR EN FIRESTORE
-    await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      earnings: 0,
-      today: 0,
-      xp: 0,
-      level: 0,
-      referredBy: null,
-      fraudScore: 0,
-      pendingWithdrawal: 0,
-      createdAt: new Date()
-    });
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        earnings: 0,
+        today: 0,
+        xp: 0,
+        level: 0,
+        referredBy: null,
+        fraudScore: 0,
+        pendingWithdrawal: 0,
+        createdAt: new Date()
+      });
 
-    console.log("Usuario creado en Firestore ✅");
+      console.log("✅ Usuario guardado en Firestore");
 
-    // ❌ QUITAMOS EL ALERT
-    // alert("Registro exitoso 🚀");
+    } catch (fireError) {
+      console.error("🔥 ERROR FIRESTORE:", fireError);
+      alert("Error guardando usuario en DB");
+    }
 
-    // ✅ GUARDAMOS UID
     localStorage.setItem("uid", user.uid);
-
-    // ✅ REDIRECCIÓN AUTOMÁTICA
     window.location.href = "dashboard.html";
 
   } catch(err){
-    console.error(err);
+    console.error("🔥 ERROR AUTH:", err);
     alert(err.message);
   }
 };
