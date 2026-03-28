@@ -1258,6 +1258,16 @@ async function initUser() {
     }
   }
 
+  // 💰 FUNCIÓN GLOBAL PARA SUMAR DINERO
+async function sumarSaldo(monto){
+  if(!userRef) return;
+
+  await updateDoc(userRef, {
+    earnings: increment(monto),
+    today: increment(monto)
+  });
+}
+
   // 🔴 ESCUCHAR CAMBIOS
   onSnapshot(userRef, (docSnap) => {
     const data = docSnap.data();
@@ -1268,7 +1278,18 @@ async function initUser() {
   });
 }
 
-initUser();
+initUser().then(async ()=>{
+
+  // 💰 DETECTAR RECOMPENSA DEL JUEGO
+  const reward = localStorage.getItem("reward_pending");
+
+  if(reward){
+    await sumarSaldo(parseFloat(reward));
+    localStorage.removeItem("reward_pending");
+  }
+
+});
+  
 
 // 🎮 JUEGOS
 window.playGame = function(game) {
