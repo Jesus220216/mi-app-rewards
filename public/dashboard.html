@@ -1333,16 +1333,145 @@ window.abrirJuego = function(nombre){
 
 // 📹 VIDEOS
 window.watchVideo = function(video){
+  currentVideo = video<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// 🔥 CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "rutarizador-v12.firebaseapp.com",
+  projectId: "rutarizador-v12"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
+
+// 🧠 VARIABLES GLOBALES
+let userRef = null;
+let referrerRef = null;
+let currentGame = null;
+let currentVideo = null;
+
+// 🆔 USER ID
+function getUserId() {
+  let id = localStorage.getItem("user_id");
+  if (!id) {
+    id = "user_" + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem("user_id", id);
+  }
+  return id;
+}
+
+// 🔗 REFERIDO
+const urlParams = new URLSearchParams(window.location.search);
+const ref = urlParams.get("ref");
+
+if (ref) localStorage.setItem("ref_applied", ref);
+
+// 🚀 INIT USER
+async function initUser() {
+  const userId = getUserId();
+
+  userRef = doc(db, "users", userId);
+
+  const referrerId = localStorage.getItem("ref_applied");
+  referrerRef = referrerId ? doc(db, "users", referrerId) : null;
+
+  const snap = await getDoc(userRef);
+
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      earnings: 0,
+      today: 0,
+      createdAt: Date.now()
+    });
+
+    if (referrerRef) {
+      await updateDoc(referrerRef, {
+        earnings: increment(0.20)
+      });
+      localStorage.removeItem("ref_applied");
+    }
+  }
+
+  // 💰 FUNCIÓN GLOBAL PARA SUMAR DINERO
+async function sumarSaldo(monto){
+  if(!userRef) return;
+
+  await updateDoc(userRef, {
+    earnings: increment(monto),
+    today: increment(monto)
+  });
+}
+
+  // 🔴 ESCUCHAR CAMBIOS
+  onSnapshot(userRef, (docSnap) => {
+    const data = docSnap.data();
+    document.getElementById("saldo").textContent = "$" + data.earnings.toFixed(2);
+    document.getElementById("balance").textContent = "$" + data.earnings.toFixed(2);
+    document.getElementById("today").textContent = "$" + data.today.toFixed(2);
+    document.getElementById("today2").textContent = "$" + data.today.toFixed(2);
+  });
+}
+
+initUser().then(async ()=>{
+
+  // 💰 DETECTAR RECOMPENSA DEL JUEGO
+  const reward = localStorage.getItem("reward_pending");
+
+  if(reward){
+    await sumarSaldo(parseFloat(reward));
+    localStorage.removeItem("reward_pending");
+  }
+
+});
+  
+
+// 🎮 JUEGOS
+window.playGame = function(game) {
+  currentGame = game;
+  document.getElementById("gameModal").style.display = "block";
+};
+
+window.completeGame = async function() {
+  if (!currentGame) return;
+
+  const reward = 1;
+
+  await updateDoc(userRef, {
+    earnings: increment(reward),
+    today: increment(reward)
+  });
+
+  if (referrerRef) {
+    await updateDoc(referrerRef, {
+      earnings: increment(reward * 0.1)
+    });
+  }
+
+  alert("Ganaste $" + reward);
+  document.getElementById("gameModal").style.display = "none";
+};
+
+// 📹 VIDEOS
+window.watchVideo = function(video) {
   currentVideo = video;
   document.getElementById("videoModal").style.display = "block";
 };
 
-window.completeVideo = async function(){
-  if(!currentVideo) return;
+window.completeVideo = async function() {
+  if (!currentVideo) return;
 
   const reward = 0.5;
 
-  await sumarSaldo(reward);
+  await updateDoc(userRef, {
+    earnings: increment(reward),
+    today: increment(reward)
+  });
 
   if (referrerRef) {
     await updateDoc(referrerRef, {
@@ -1354,47 +1483,29 @@ window.completeVideo = async function(){
   document.getElementById("videoModal").style.display = "none";
 };
 
-// 📋 ENCUESTAS (CPX)
-window.abrirEncuestas = function(){
-  const user_id = getUserId();
-  const hash = CryptoJS.MD5(user_id + "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS").toString();
-
-  const url = `https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${user_id}&secure_hash=${hash}`;
-
-  document.body.innerHTML = `
-    <button onclick="location.reload()">⬅ Volver</button>
-    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
-  `;
+// 📋 ENCUESTAS
+window.abrirEncuestas = function() {
+  alert("Encuestas activas");
 };
 
-// 🔗 REFERIDOS
-window.copiarRef = function(){
+// 🔗 REFERIDO
+window.copiarRef = function() {
   const link = window.location.origin + "?ref=" + getUserId();
   navigator.clipboard.writeText(link);
   alert("Copiado ✅");
 };
 
 // 💳 RETIRO
-window.retirar = function(){
+window.retirar = function() {
   alert("Solicitud enviada");
 };
 
 // 🚪 LOGOUT
-window.logout = async function(){
+window.logout = async function() {
   await signOut(auth);
   localStorage.clear();
   window.location.href = "index.html";
 };
-
-// ❌ CERRAR MODALES
-window.onclick = function(event) {
-  const gameModal = document.getElementById('gameModal');
-  const videoModal = document.getElementById('videoModal');
-
-  if (event.target == gameModal) gameModal.style.display = 'none';
-  if (event.target == videoModal) videoModal.style.display = 'none';
-};
-
 
 </script>
 
