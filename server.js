@@ -1,12 +1,22 @@
 const express = require("express");
 const path = require("path");
-app.use(express.static("public"));
 
-const app = express();
+const app = express(); // ⚠️ PRIMERO se declara
+
 app.use(express.json());
 
-// 🔥 SERVIR FRONTEND (ARREGLA EL ERROR 404)
+// 🔥 SERVIR FRONTEND
 app.use(express.static(path.join(__dirname, "public")));
+
+// 🔥 RUTA PRINCIPAL
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// 🔥 DASHBOARD
+app.get("/dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
 
 // 💳 RETIRO
 app.post("/withdraw", (req, res) => {
