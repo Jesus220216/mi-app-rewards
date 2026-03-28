@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Panel</title>
+<meta charset="UTF-8">
+<title>Admin</title>
 </head>
+
 <body style="background:#0a0e27;color:white;font-family:sans-serif">
 
-<h1>📊 Usuarios</h1>
+<h1>📊 Usuarios en tiempo real</h1>
 
 <div id="users"></div>
 
@@ -32,13 +34,13 @@ onSnapshot(collection(db, "users"), (snapshot)=>{
   usersDiv.innerHTML = "";
 
   snapshot.forEach(doc=>{
-    const data = doc.data();
+    const d = doc.data();
 
     usersDiv.innerHTML += `
-      <div style="margin:10px;padding:10px;border:1px solid #4caf50">
-        <b>ID:</b> ${doc.id}<br>
-        💰 Saldo: $${data.earnings || 0}<br>
-        📅 Hoy: $${data.today || 0}
+      <div style="border:1px solid #4caf50;margin:10px;padding:10px">
+        🆔 ${doc.id}<br>
+        💰 $${d.earnings || 0}<br>
+        📅 Hoy: $${d.today || 0}
       </div>
     `;
   });
