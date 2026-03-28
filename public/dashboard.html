@@ -1246,7 +1246,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
 
-// 🧠 VARIABLES GLOBALES
+// VARIABLES
 let userRef = null;
 let referrerRef = null;
 let currentGame = null;
@@ -1271,7 +1271,6 @@ if (ref) localStorage.setItem("ref_applied", ref);
 // 🚀 INIT USER
 async function initUser() {
   const userId = getUserId();
-
   userRef = doc(db, "users", userId);
 
   const referrerId = localStorage.getItem("ref_applied");
@@ -1294,7 +1293,18 @@ async function initUser() {
     }
   }
 
-  // 💰 FUNCIÓN GLOBAL PARA SUMAR DINERO
+  // 🔴 ACTUALIZAR UI EN TIEMPO REAL
+  onSnapshot(userRef, (docSnap) => {
+    const data = docSnap.data();
+
+    document.getElementById("saldo").textContent = "$" + data.earnings.toFixed(2);
+    document.getElementById("balance").textContent = "$" + data.earnings.toFixed(2);
+    document.getElementById("today").textContent = "$" + data.today.toFixed(2);
+    document.getElementById("today2").textContent = "$" + data.today.toFixed(2);
+  });
+}
+
+// 💰 SUMAR SALDO
 async function sumarSaldo(monto){
   if(!userRef) return;
 
@@ -1304,19 +1314,9 @@ async function sumarSaldo(monto){
   });
 }
 
-  // 🔴 ESCUCHAR CAMBIOS
-  onSnapshot(userRef, (docSnap) => {
-    const data = docSnap.data();
-    document.getElementById("saldo").textContent = "$" + data.earnings.toFixed(2);
-    document.getElementById("balance").textContent = "$" + data.earnings.toFixed(2);
-    document.getElementById("today").textContent = "$" + data.today.toFixed(2);
-    document.getElementById("today2").textContent = "$" + data.today.toFixed(2);
-  });
-}
-
+// 🚀 INICIAR
 initUser().then(async ()=>{
 
-  // 💰 DETECTAR RECOMPENSA DEL JUEGO
   const reward = localStorage.getItem("reward_pending");
 
   if(reward){
@@ -1325,49 +1325,24 @@ initUser().then(async ()=>{
   }
 
 });
-  
 
-// 🎮 JUEGOS
-window.playGame = function(game) {
-  currentGame = game;
-  document.getElementById("gameModal").style.display = "block";
-};
-
-window.completeGame = async function() {
-  if (!currentGame) return;
-
-  const reward = 1;
-
-  await updateDoc(userRef, {
-    earnings: increment(reward),
-    today: increment(reward)
-  });
-
-  if (referrerRef) {
-    await updateDoc(referrerRef, {
-      earnings: increment(reward * 0.1)
-    });
-  }
-
-  alert("Ganaste $" + reward);
-  document.getElementById("gameModal").style.display = "none";
+// 🎮 JUEGO (ABRIR)
+window.abrirJuego = function(nombre){
+  window.location.href = "game-" + nombre + ".html";
 };
 
 // 📹 VIDEOS
-window.watchVideo = function(video) {
+window.watchVideo = function(video){
   currentVideo = video;
   document.getElementById("videoModal").style.display = "block";
 };
 
-window.completeVideo = async function() {
-  if (!currentVideo) return;
+window.completeVideo = async function(){
+  if(!currentVideo) return;
 
   const reward = 0.5;
 
-  await updateDoc(userRef, {
-    earnings: increment(reward),
-    today: increment(reward)
-  });
+  await sumarSaldo(reward);
 
   if (referrerRef) {
     await updateDoc(referrerRef, {
@@ -1379,29 +1354,47 @@ window.completeVideo = async function() {
   document.getElementById("videoModal").style.display = "none";
 };
 
-// 📋 ENCUESTAS
-window.abrirEncuestas = function() {
-  alert("Encuestas activas");
+// 📋 ENCUESTAS (CPX)
+window.abrirEncuestas = function(){
+  const user_id = getUserId();
+  const hash = CryptoJS.MD5(user_id + "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS").toString();
+
+  const url = `https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${user_id}&secure_hash=${hash}`;
+
+  document.body.innerHTML = `
+    <button onclick="location.reload()">⬅ Volver</button>
+    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
+  `;
 };
 
-// 🔗 REFERIDO
-window.copiarRef = function() {
+// 🔗 REFERIDOS
+window.copiarRef = function(){
   const link = window.location.origin + "?ref=" + getUserId();
   navigator.clipboard.writeText(link);
   alert("Copiado ✅");
 };
 
 // 💳 RETIRO
-window.retirar = function() {
+window.retirar = function(){
   alert("Solicitud enviada");
 };
 
 // 🚪 LOGOUT
-window.logout = async function() {
+window.logout = async function(){
   await signOut(auth);
   localStorage.clear();
   window.location.href = "index.html";
 };
+
+// ❌ CERRAR MODALES
+window.onclick = function(event) {
+  const gameModal = document.getElementById('gameModal');
+  const videoModal = document.getElementById('videoModal');
+
+  if (event.target == gameModal) gameModal.style.display = 'none';
+  if (event.target == videoModal) videoModal.style.display = 'none';
+};
+
 
 </script>
 
