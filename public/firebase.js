@@ -1,12 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, updateDoc, increment, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const app = initializeApp({
-  apiKey: "TU_API_KEY_REAL",
+const firebaseConfig = {
+  apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
-  projectId: "mi-app-rewards-rd"
-});
+  projectId: "mi-app-rewards-rd",
+  storageBucket: "mi-app-rewards-rd.firebasestorage.app",
+  messagingSenderId: "862164914639",
+  appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
+  measurementId: "G-9BMKB6QNV2"
+};
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+export { db, doc, updateDoc, increment, getDoc, setDoc, onSnapshot };
