@@ -7,113 +7,53 @@ import {
 
 import {
   doc,
-  setDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  increment
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔐 LOGIN
+// LOGIN
 window.login = async function () {
-
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
-  if (!email || !password) {
-    alert("Completa los campos");
-    return;
-  }
+  if (!email || !password) return alert("Completa los campos");
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
     window.location.href = "dashboard.html";
-  } catch (error) {
-    alert(error.message);
+  } catch (e) {
+    alert(e.message);
   }
 };
 
-// 🆕 REGISTRO
+// REGISTER
 window.register = async function () {
-
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
-  const refCode = localStorage.getItem("ref_code");
-
-  if (!email || !password) {
-    alert("Completa los campos");
-    return;
-  }
+  if (!email || !password) return alert("Completa los campos");
 
   try {
-
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCred.user;
 
-    const myCode = user.uid.substring(0,6).toUpperCase();
-
-    // 💾 GUARDAR USUARIO
-    await setDoc(doc(db, "users", user.uid), {
+    await setDoc(doc(db, "users", userCred.user.uid), {
       email,
-      referralCode: myCode,
-      referrer: refCode || null,
       earnings: 0,
       today: 0,
-      refs: 0,
       createdAt: new Date()
     });
 
-    // 🎁 PAGAR REFERIDO
-    if (refCode) {
-      const q = query(collection(db, "users"), where("referralCode", "==", refCode));
-      const snap = await getDocs(q);
-
-      snap.forEach(async (docu) => {
-        await updateDoc(docu.ref, {
-          refs: increment(1),
-          earnings: increment(1)
-        });
-      });
-    }
-
-    localStorage.removeItem("ref_code");
-
     window.location.href = "dashboard.html";
 
-  } catch (error) {
-    alert(error.message);
+  } catch (e) {
+    alert(e.message);
   }
-};// 🎁 BONUS DIARIO
-document.getElementById("btnBonus").addEventListener("click", async () => {
+};
 
-  const { auth, db } = await import("./firebase.js");
-  const { doc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-
-  const user = auth.currentUser;
-
-  if (!user) {
-    alert("Debes iniciar sesión");
-    return;
-  }
-
-  const today = new Date().toDateString();
-  const last = localStorage.getItem("bonus_date");
-
-  if (last === today) {
-    alert("Ya reclamaste el bonus hoy");
-    return;
-  }
-
-  const ref = doc(db, "users", user.uid);
-
-  await updateDoc(ref, {
-    earnings: increment(0.5),
-    today: increment(0.5)
-  });
-
+// 🔥 CONECTAR BOTONES
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnLogin")?.addEventListener("click", login);
+  document.getElementById("btnRegister")?.addEventListener("click", register);
+});
   localStorage.setItem("bonus_date", today);
 
   alert("Bonus recibido +$0.5 💰");
