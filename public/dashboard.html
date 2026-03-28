@@ -1226,20 +1226,27 @@ window.onclick = function(event) {
 <!-- FIREBASE - SISTEMA DE REFERIDOS PRO -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
+  <!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 import {
   getFirestore,
   doc,
-  onSnapshot,
-  updateDoc,
-  increment,
+  setDoc,
   getDoc,
-  setDoc
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🔥 FIREBASE */
-const firebaseConfig = {
+// 🔥 CONFIG
+const app = initializeApp({
   apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
   projectId: "mi-app-rewards-rd",
@@ -1247,150 +1254,153 @@ const firebaseConfig = {
   messagingSenderId: "862164914639",
   appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
   measurementId: "G-9BMKB6QNV2"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* 👤 USER */
-function getUserId() {
-  let id = localStorage.getItem("user_id");
-  if (!id) {
-    id = "user_" + Math.random().toString(36).substring(2, 10);
-    localStorage.setItem("user_id", id);
-  }
-  return id;
-}
-
-const userId = getUserId();
-const userRef = doc(db, "users", userId);
-
-/* 🔗 REFERIDOS */
-const ref = new URLSearchParams(window.location.search).get("ref");
-if (ref && ref !== userId) {
-  localStorage.setItem("referrer", ref);
-}
-
-/* 🚀 INIT USER */
-async function initUser() {
-  const snap = await getDoc(userRef);
-
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      earnings: 0,
-      today: 0
-    });
-  }
-}
-
-await initUser();
-
-/* 💰 SUMAR DINERO */
-async function addEarnings(amount) {
-  await updateDoc(userRef, {
-    earnings: increment(amount),
-    today: increment(amount)
-  });
-
-  const referrer = localStorage.getItem("referrer");
-
-  if (referrer) {
-    const refRef = doc(db, "users", referrer);
-
-    await updateDoc(refRef, {
-      earnings: increment(amount * 0.10)
-    });
-  }
-}
-
-/* 🔄 REALTIME UI */
-onSnapshot(userRef, (snap) => {
-  const data = snap.data();
-
-  document.getElementById("saldo").innerText = "$" + data.earnings.toFixed(2);
-  document.getElementById("balance").innerText = "$" + data.earnings.toFixed(2);
-  document.getElementById("today").innerText = "$" + data.today.toFixed(2);
-  document.getElementById("today2").innerText = "$" + data.today.toFixed(2);
 });
 
-/* 🤖 ANTI BOT */
-let lastAction = 0;
-function antiBot() {
-  const now = Date.now();
-  if (now - lastAction < 2000) {
-    alert("🚫 Espera un momento");
-    return false;
+const auth = getAuth(app);
+
+let currentUser = null;
+
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+});
+    
+const db = getFirestore(app);
+
+// 👁 VER PASSWORD
+window.togglePass = function(){
+  const input = document.getElementById("loginPassword");
+  input.type = input.type === "password" ? "text" : "password";
+};
+
+// 📋 REFERIDO
+window.pasteRef = function(){
+  const ref = localStorage.getItem("referrer_id");
+  if(ref){
+    document.getElementById("referralCode").value = ref;
+    alert("Referido aplicado ✅");
   }
-  lastAction = now;
-  return true;
+};
+
+// 🔐 LOGIN
+window.login = async function(){
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  try{
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // 🔥 asegurar que existe en Firestore
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+
+    if (!snap.exists()){
+      await setDoc(userRef, {
+        email: user.email,
+        earnings: 0,
+        createdAt: new Date()
+      });
+    }
+
+    // ❌ QUITAMOS EL ALERT
+    // alert("Login correcto ✅");
+
+    localStorage.setItem("uid", user.uid);
+
+    // ✅ REDIRECCIÓN DIRECTA
+    window.location.href = "dashboard.html";
+
+  }catch(e){
+    console.error(e);
+    alert(e.message);
+  }
+};
+// 🆕 REGISTER
+window.register = async function(){
+  console.log("REGISTER CLICK");
+
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  if (!email || !password){
+    alert("Completa los campos");
+    return;
+  }
+
+  try{
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        earnings: 0,
+        today: 0,
+        xp: 0,
+        level: 0,
+        referredBy: null,
+        fraudScore: 0,
+        pendingWithdrawal: 0,
+        createdAt: new Date()
+      });
+
+      console.log("✅ Usuario guardado en Firestore");
+
+    } catch (fireError) {
+      console.error("🔥 ERROR FIRESTORE:", fireError);
+      alert("Error guardando usuario en DB");
+    }
+
+    localStorage.setItem("uid", user.uid);
+    window.location.href = "dashboard.html";
+
+  } catch(err){
+    console.error("🔥 ERROR AUTH:", err);
+    alert(err.message);
+  }
+};
+  window.bonus = async function(){
+  const user = currentUser;
+
+  if (!user){
+    alert("Debes iniciar sesión");
+    return;
+  }
+
+  try{
+    const res = await fetch("/daily-bonus", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ user_id: user.uid })
+    });
+
+    const text = await res.text();
+    alert(text);
+
+  }catch(e){
+    console.error(e);
+    alert("Error en bonus");
+  }
+};
+
+
+
+// 🎯 REFERIDO URL
+const params = new URLSearchParams(window.location.search);
+const ref = params.get("ref");
+if(ref){
+  localStorage.setItem("referrer_id", ref);
+  document.getElementById("referralCode").value = ref;
 }
-
-/* 🎮 JUEGOS */
-window.playGame = async function(game) {
-  if (!antiBot()) return;
-
-  const rewards = {
-    snake: 0.5,
-    memory: 1,
-    flappy: 0.75,
-    "2048": 1.5,
-    dice: 2,
-    trivia: 1.25
-  };
-
-  const reward = rewards[game] || 0.5;
-
-  setTimeout(async () => {
-    await addEarnings(reward);
-    alert("✅ Ganaste $" + reward);
-  }, 3000);
-};
-
-/* 📹 VIDEOS */
-window.watchVideo = function() {
-  if (!antiBot()) return;
-
-  setTimeout(async () => {
-    await addEarnings(0.25);
-    alert("🎥 Video completado +$0.25");
-  }, 10000);
-};
-
-/* 📋 ENCUESTAS */
-window.abrirEncuestas = function() {
-  const user = getUserId();
-  const hash = CryptoJS.MD5(user + "TU_API_KEY").toString();
-
-  const url = `https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${user}&secure_hash=${hash}`;
-
-  window.open(url, "_blank");
-};
-
-/* 💳 RETIRO */
-window.retirar = function() {
-  fetch("/withdraw", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ user_id: userId })
-  });
-
-  alert("💰 Retiro enviado");
-};
-
-/* 🔗 REF LINK */
-document.getElementById("refLink").value =
-  window.location.origin + "?ref=" + userId;
-
-/* 🚪 LOGOUT */
-window.logout = function() {
-  localStorage.clear();
-  location.href = "index.html";
-};
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnLogin").addEventListener("click", window.login);
+  document.getElementById("btnRegister").addEventListener("click", window.register);
+  document.getElementById("btnBonus").addEventListener("click", window.bonus);
+});
 </script>
 
 </body>
 </html>
-
 
