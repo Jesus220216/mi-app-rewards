@@ -1,7 +1,10 @@
 // firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// 🔥 IMPORTS FIREBASE
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+// 🔥 CONFIG (USA LA TUYA)
 const firebaseConfig = {
   apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
@@ -12,14 +15,9 @@ const firebaseConfig = {
   measurementId: "G-9BMKB6QNV2"
 };
 
+// 🔥 INIT
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
 
-export {
-  doc,
-  onSnapshot,
-  updateDoc,
-  increment,
-  getDoc,
-  setDoc
-};
+// 🔥 EXPORTS
+export const db = getFirestore(app);
+export const auth = getAuth(app);;
