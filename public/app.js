@@ -82,6 +82,24 @@ window.completeVideo = async function(){
     return alert("🚫 Límite diario $5");
   }
 
+  let clicks = 0;
+
+document.addEventListener("click", ()=>{
+  clicks++;
+
+  if(clicks > 100){
+    alert("🚫 Actividad sospechosa detectada");
+    location.reload();
+  }
+});
+
+/* DETECTAR CAMBIO DE PESTAÑA */
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){
+    alert("🚫 No cambies de pestaña");
+  }
+});
+
   todayEarned += reward;
   localStorage.setItem("earned_today", todayEarned);
 
@@ -134,10 +152,12 @@ window.copiarRef = function(){
 
 /* 💳 RETIRO */
 window.retirar = function(){
-  fetch("/withdraw", {
+  fetch("http://localhost:3000/withdraw", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ user_id: userId })
+    body: JSON.stringify({
+      user_id: localStorage.getItem("user_id")
+    })
   })
   .then(()=> alert("Solicitud enviada"));
 };
