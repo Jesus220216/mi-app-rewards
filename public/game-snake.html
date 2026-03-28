@@ -1,41 +1,87 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<title>Snake</title>
+<meta charset="UTF-8">
+<title>Snake Game</title>
+<style>
+body{
+  background:#0a0e27;
+  color:white;
+  text-align:center;
+}
+canvas{
+  background:black;
+  margin-top:20px;
+}
+button{
+  padding:10px 20px;
+  margin-top:20px;
+}
+</style>
 </head>
-<body style="background:black;text-align:center">
 
-<canvas id="game" width="400" height="400" style="background:#111"></canvas>
+<body>
+
+<h1>🐍 Snake</h1>
+<p>Come comida y gana dinero</p>
+
+<canvas id="game" width="400" height="400"></canvas>
+
+<br>
+<button onclick="terminar()">💰 Terminar y cobrar</button>
 
 <script>
-let canvas = document.getElementById("game");
-let ctx = canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-let x = 200;
-let y = 200;
-let dx = 20;
+let snake = [{x:10,y:10}];
+let food = {x:15,y:15};
+let dx = 1;
 let dy = 0;
+let score = 0;
 
 document.addEventListener("keydown", e=>{
-  if(e.key=="ArrowUp"){dx=0;dy=-20;}
-  if(e.key=="ArrowDown"){dx=0;dy=20;}
-  if(e.key=="ArrowLeft"){dx=-20;dy=0;}
-  if(e.key=="ArrowRight"){dx=20;dy=0;}
+  if(e.key==="ArrowUp"){dx=0;dy=-1;}
+  if(e.key==="ArrowDown"){dx=0;dy=1;}
+  if(e.key==="ArrowLeft"){dx=-1;dy=0;}
+  if(e.key==="ArrowRight"){dx=1;dy=0;}
 });
 
-function loop(){
+function draw(){
   ctx.clearRect(0,0,400,400);
 
-  x += dx;
-  y += dy;
+  snake.forEach(p=>{
+    ctx.fillStyle="lime";
+    ctx.fillRect(p.x*20,p.y*20,18,18);
+  });
 
-  ctx.fillStyle="lime";
-  ctx.fillRect(x,y,20,20);
+  ctx.fillStyle="red";
+  ctx.fillRect(food.x*20,food.y*20,18,18);
 
-  requestAnimationFrame(loop);
+  let head = {x:snake[0].x+dx,y:snake[0].y+dy};
+
+  if(head.x===food.x && head.y===food.y){
+    score++;
+    food = {
+      x:Math.floor(Math.random()*20),
+      y:Math.floor(Math.random()*20)
+    };
+  }else{
+    snake.pop();
+  }
+
+  snake.unshift(head);
 }
 
-loop();
+setInterval(draw,150);
+
+// 💰 TERMINAR JUEGO
+function terminar(){
+  const reward = Math.min(score * 0.2, 5); // máximo $5
+  localStorage.setItem("reward_pending", reward);
+  alert("Ganaste $" + reward.toFixed(2));
+  window.location.href = "dashboard.html";
+}
 </script>
 
 </body>
