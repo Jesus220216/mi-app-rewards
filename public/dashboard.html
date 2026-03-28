@@ -1231,7 +1231,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* FIREBASE CONFIG */
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
@@ -1248,11 +1248,10 @@ const auth = getAuth();
 
 /* VARIABLES */
 let userRef = null;
-let referrerRef = null;
-let currentGame = null;
 let currentVideo = null;
-  let videoTime = 0;
-window.videoCompleto = false;
+let videoTime = 0;
+let videoCompleto = false;
+let tabActiva = true;
 
 /* USER ID */
 function getUserId(){
@@ -1264,34 +1263,18 @@ function getUserId(){
   return id;
 }
 
-/* REFERIDO */
-const params = new URLSearchParams(window.location.search);
-const ref = params.get("ref");
-if(ref) localStorage.setItem("ref_applied", ref);
-
 /* INIT USER */
 async function initUser(){
   const userId = getUserId();
   userRef = doc(db,"users",userId);
-
-  const referrerId = localStorage.getItem("ref_applied");
-  referrerRef = referrerId ? doc(db,"users",referrerId) : null;
 
   const snap = await getDoc(userRef);
 
   if(!snap.exists()){
     await setDoc(userRef,{
       earnings:0,
-      today:0,
-      createdAt: Date.now()
+      today:0
     });
-
-    if(referrerRef){
-      await updateDoc(referrerRef,{
-        earnings: increment(0.20)
-      });
-      localStorage.removeItem("ref_applied");
-    }
   }
 
   onSnapshot(userRef,(docSnap)=>{
@@ -1306,155 +1289,122 @@ async function initUser(){
 
 await initUser();
 
-/* BONUS SOLO SI JUGÓ */
-const reward = localStorage.getItem("reward_pending");
-if(reward){
-  await updateDoc(userRef,{
-    earnings: increment(parseFloat(reward)),
-    today: increment(parseFloat(reward))
-  });
-  localStorage.removeItem("reward_pending");
-}
-
 /* ===================== */
-/* 🎮 JUEGOS REALES */
+/* 🎥 VIDEOS PRO */
 /* ===================== */
 
-window.playGame = function(game){
-  currentGame = game;
-
-  const container = document.getElementById("gameContent");
-
-  if(game === "snake"){
-    container.innerHTML = `<canvas id="snakeGame" width="300" height="300" style="background:#000;border-radius:10px;"></canvas>`;
-    iniciarSnake();
-  }
-
-  if(game === "dice"){
-    container.innerHTML = `
-      <div style="text-align:center">
-        <h2 id="diceResult">🎲</h2>
-        <button onclick="tirarDado()">Lanzar</button>
-      </div>
-    `;
-  }
-
-  document.getElementById("gameModal").style.display = "block";
+const videoData = {
+  video1: { id: "dQw4w9WgXcQ", reward: 0.25, duration: 150 },
+  video2: { id: "3JZ_D3ELwOQ", reward: 0.50, duration: 315 },
+  video3: { id: "LXb3EKWsInQ", reward: 0.35, duration: 225 },
+  video4: { id: "ysz5S6PUM-U", reward: 0.75, duration: 440 },
+  video5: { id: "hY7m5jjJ9mM", reward: 1.00, duration: 240 },
+  video6: { id: "aqz-KE-bpKQ", reward: 2.00, duration: 930 }
 };
 
-/* COMPLETAR JUEGO (PAGA DESPUÉS) */
-window.completeVideo = function(){
+/* ABRIR VIDEO */
+window.watchVideo = function(videoId){
+  currentVideo = videoId;
+  videoTime = 0;
+  videoCompleto = false;
+
+  const video = videoData[videoId];
+
+  document.getElementById("videoContent").innerHTML = `
+    <iframe 
+      id="ytplayer"
+      width="100%" 
+      height="300"
+      src="https://www.youtube.com/embed/${video.id}?enablejsapi=1&controls=0&disablekb=1&modestbranding=1&rel=0"
+      frameborder="0"
+      allow="autoplay"
+    ></iframe>
+
+    <p id="videoTimer" style="margin-top:10px;color:#81c784;font-weight:bold;">
+      Tiempo: 0 / ${video.duration}s
+    </p>
+  `;
+
+  document.getElementById("videoModal").style.display = "block";
+
+  const timer = setInterval(()=>{
+    if(!tabActiva){
+      clearInterval(timer);
+      alert("🚫 No cambies de pestaña");
+      return;
+    }
+
+    videoTime++;
+
+    document.getElementById("videoTimer").textContent =
+      `Tiempo: ${videoTime} / ${video.duration}s`;
+
+    if(videoTime >= video.duration){
+      clearInterval(timer);
+      videoCompleto = true;
+      document.getElementById("videoTimer").textContent = "✅ Video completado";
+    }
+
+  },1000);
+};
+
+/* COMPLETAR VIDEO */
+window.completeVideo = async function(){
 
   if(!currentVideo){
     alert("❌ No hay video activo");
     return;
   }
 
-  if(!window.videoCompleto){
+  if(!videoCompleto){
     alert("⏳ Debes ver el video completo");
     return;
   }
 
+  const video = videoData[currentVideo];
+
   const today = new Date().toDateString();
 
-  // 📅 CONTROL DIARIO
-  const lastWatched = localStorage.getItem("video_"+currentVideo);
-
-  if(lastWatched === today){
+  /* 🚫 NO REPETIR */
+  if(localStorage.getItem("watched_"+currentVideo) === today){
     alert("🚫 Ya viste este video hoy");
     return;
   }
 
-/* ===================== */
-/* 🎲 DADO REAL */
-/* ===================== */
-window.tirarDado = function(){
-  const num = Math.floor(Math.random()*6)+1;
-  document.getElementById("diceResult").textContent = "🎲 " + num;
+  /* 💰 LÍMITE DIARIO */
+  const earnedToday = parseFloat(localStorage.getItem("earned_today") || 0);
+
+  if(earnedToday + video.reward > 5){
+    alert("🚫 Límite diario alcanzado ($5)");
+    return;
+  }
+
+  /* GUARDAR */
+  localStorage.setItem("watched_"+currentVideo, today);
+  localStorage.setItem("earned_today", earnedToday + video.reward);
+
+  await updateDoc(userRef,{
+    earnings: increment(video.reward),
+    today: increment(video.reward)
+  });
+
+  alert("✅ Ganaste $" + video.reward);
+
+  document.getElementById("videoModal").style.display = "none";
 };
 
 /* ===================== */
-/* 🐍 SNAKE REAL */
+/* 🛑 ANTI TRAMPA */
 /* ===================== */
-function iniciarSnake(){
-  const canvas = document.getElementById("snakeGame");
-  const ctx = canvas.getContext("2d");
-
-  let snake = [{x:150,y:150}];
-  let food = {x:100,y:100};
-  let dx = 10;
-  let dy = 0;
-
-  document.addEventListener("keydown", e=>{
-    if(e.key==="ArrowUp"){dx=0;dy=-10;}
-    if(e.key==="ArrowDown"){dx=0;dy=10;}
-    if(e.key==="ArrowLeft"){dx=-10;dy=0;}
-    if(e.key==="ArrowRight"){dx=10;dy=0;}
-  });
-
-  function draw(){
-    ctx.clearRect(0,0,300,300);
-
-    snake.forEach(s=>{
-      ctx.fillStyle="lime";
-      ctx.fillRect(s.x,s.y,10,10);
-    });
-
-    ctx.fillStyle="red";
-    ctx.fillRect(food.x,food.y,10,10);
-
-    let head = {x: snake[0].x + dx, y: snake[0].y + dy};
-    snake.unshift(head);
-
-    if(head.x===food.x && head.y===food.y){
-      food = {
-        x: Math.floor(Math.random()*30)*10,
-        y: Math.floor(Math.random()*30)*10
-      };
-    } else {
-      snake.pop();
-    }
-  }
-
-  setInterval(draw,100);
-}
+document.addEventListener("visibilitychange", ()=>{
+  tabActiva = !document.hidden;
+});
 
 /* ===================== */
-/* 🎥 VIDEOS */
+/* 🎮 JUEGOS (SIMPLE) */
 /* ===================== */
-
-window.watchVideo = function(videoId){
-  currentVideo = videoId;
-  videoTime = 0;
-
-  const videoDurations = {
-    video1: 150, // 2:30
-    video2: 315,
-    video3: 225,
-    video4: 440,
-    video5: 240,
-    video6: 930
-  };
-
-  const duration = videoDurations[videoId] || 60;
-
-  document.getElementById("videoModal").style.display = "block";
-
-  const timer = setInterval(()=>{
-    videoTime++;
-
-    document.getElementById("videoTimer").textContent =
-      `Tiempo: ${videoTime}s / ${duration}s`;
-
-    if(videoTime >= duration){
-      clearInterval(timer);
-
-      document.getElementById("videoTimer").textContent = "✅ Completo";
-
-      // ACTIVAR BOTÓN
-      window.videoCompleto = true;
-    }
-  },1000);
+window.playGame = function(game){
+  alert("Juego: " + game);
 };
 
 /* ===================== */
@@ -1467,13 +1417,6 @@ window.copiarRef = function(){
 };
 
 /* ===================== */
-/* 💳 RETIRO */
-/* ===================== */
-window.retirar = function(){
-  alert("Solicitud enviada");
-};
-
-/* ===================== */
 /* 🚪 LOGOUT */
 /* ===================== */
 window.logout = async function(){
@@ -1481,7 +1424,7 @@ window.logout = async function(){
   localStorage.clear();
   window.location.href = "index.html";
 };
-  
+
 </script>
   
 </body>
