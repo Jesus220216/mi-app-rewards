@@ -86,4 +86,35 @@ window.register = async function () {
   } catch (error) {
     alert(error.message);
   }
-};
+};// 🎁 BONUS DIARIO
+document.getElementById("btnBonus").addEventListener("click", async () => {
+
+  const { auth, db } = await import("./firebase.js");
+  const { doc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Debes iniciar sesión");
+    return;
+  }
+
+  const today = new Date().toDateString();
+  const last = localStorage.getItem("bonus_date");
+
+  if (last === today) {
+    alert("Ya reclamaste el bonus hoy");
+    return;
+  }
+
+  const ref = doc(db, "users", user.uid);
+
+  await updateDoc(ref, {
+    earnings: increment(0.5),
+    today: increment(0.5)
+  });
+
+  localStorage.setItem("bonus_date", today);
+
+  alert("Bonus recibido +$0.5 💰");
+});
