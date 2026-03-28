@@ -113,16 +113,36 @@ input {
 </div>
 
 <!-- 🔥 FIREBASE -->
+<!-- 🔥 FIREBASE -->
 <script type="module" src="firebase.js"></script>
+<script type="module" src="login.js"></script> <!-- 👈 ESTE FALTABA -->
 <script type="module" src="app.js"></script>
-});
-    
+
+<!-- ❌ ELIMINAMOS ESTO -->
+<!-- }); -->
+
 <script>
 const params = new URLSearchParams(window.location.search);
 const ref = params.get("ref");
 
 if (ref) {
   localStorage.setItem("ref_code", ref);
+}
+
+// 👁️ MOSTRAR / OCULTAR PASSWORD
+function togglePass() {
+  const input = document.getElementById("loginPassword");
+  input.type = input.type === "password" ? "text" : "password";
+}
+
+// 📋 PEGAR REFERIDO
+function pasteRef() {
+  const ref = localStorage.getItem("ref_code");
+  if (ref) {
+    document.getElementById("referralCode").value = ref;
+  } else {
+    alert("No hay referido guardado");
+  }
 }
 </script>
 
