@@ -1,66 +1,89 @@
-// 🆕 REGISTRO PRO (ARREGLADO)
-async function register() {
+import { auth, db } from "./firebase.js";
+
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  increment
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔐 LOGIN
+window.login = async function () {
 
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
-  const inputRef = document.getElementById("referralCode").value;
-  const localRef = localStorage.getItem("referrer_id");
-
-  const ref = inputRef || localRef || null;
-
   if (!email || !password) {
-    alert("Completa todos los campos");
+    alert("Completa los campos");
     return;
   }
 
-  mostrarLoader(true);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = "dashboard.html";
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+// 🆕 REGISTRO
+window.register = async function () {
+
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  const refCode = localStorage.getItem("ref_code");
+
+  if (!email || !password) {
+    alert("Completa los campos");
+    return;
+  }
 
   try {
 
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCred.user;
 
-    const uid = user.uid; // ✅ ID REAL
+    const myCode = user.uid.substring(0,6).toUpperCase();
 
-    // 🎯 CPX ID (esto sí lo puedes mantener)
-    let cpxId = localStorage.getItem("cpx_user_id");
-    if (!cpxId) {
-      cpxId = "srv-" + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem("cpx_user_id", cpxId);
-    }
-
-    // 🎯 CÓDIGO PROPIO
-    const myCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    // 💾 GUARDAR USUARIO CORRECTO
-    await setDoc(doc(db, "users", uid), {
+    // 💾 GUARDAR USUARIO
+    await setDoc(doc(db, "users", user.uid), {
       email,
-      uid,
-      cpxId, // 🔥 guardas también el de CPX
       referralCode: myCode,
-      referrer: ref,
+      referrer: refCode || null,
       earnings: 0,
       today: 0,
       refs: 0,
       createdAt: new Date()
     });
 
-    // 🎯 SUMAR REFERIDO (IMPORTANTE)
-    if (ref) {
-      // buscar por referralCode (no por ID)
-      // esto lo optimizamos luego si quieres 🔥
+    // 🎁 PAGAR REFERIDO
+    if (refCode) {
+      const q = query(collection(db, "users"), where("referralCode", "==", refCode));
+      const snap = await getDocs(q);
+
+      snap.forEach(async (docu) => {
+        await updateDoc(docu.ref, {
+          refs: increment(1),
+          earnings: increment(1)
+        });
+      });
     }
 
-    alert("Cuenta creada PRO ✅");
-
-    localStorage.removeItem("referrer_id");
+    localStorage.removeItem("ref_code");
 
     window.location.href = "dashboard.html";
 
-  } catch (e) {
-    alert(e.message);
+  } catch (error) {
+    alert(error.message);
   }
-
-  mostrarLoader(false);
-}
+};
