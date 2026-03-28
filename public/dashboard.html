@@ -1312,30 +1312,31 @@ if (reward) {
 }
 
 /* JUEGOS */
-window.playGame = function(game) {
-  currentGame = game;
+window.playGame = function(gameName) {
+  currentGame = gameName;
+
+  const container = document.getElementById("gameContent");
+
+  // 🎮 CARGAR JUEGO REAL
+  if(gameName === "snake"){
+    container.innerHTML = `<canvas id="snakeGame" width="300" height="300" style="background:#000;border-radius:10px;"></canvas>`;
+    iniciarSnake();
+  }
+
+  if(gameName === "dice"){
+    container.innerHTML = `
+      <div style="text-align:center">
+        <h2 id="diceResult">🎲</h2>
+        <button class="btn btn-primary" onclick="tirarDado()">Lanzar</button>
+      </div>
+    `;
+  }
+
+  if(gameName === "memory"){
+    container.innerHTML = `<p style="color:#fff">🧠 Encuentra las parejas (simulado)</p>`;
+  }
+
   document.getElementById("gameModal").style.display = "block";
-};
-
-window.completeGame = function() {
-  if (!currentGame) return;
-
-  const rewards = {
-    snake: 0.5,
-    memory: 1,
-    flappy: 0.75,
-    "2048": 1.5,
-    dice: 2,
-    trivia: 1.25
-  };
-
-  const reward = rewards[currentGame] || 0.5;
-
-  localStorage.setItem("reward_pending", reward);
-
-  alert("Ganaste $" + reward);
-  document.getElementById("gameModal").style.display = "none";
-  location.reload();
 };
 
 /* VIDEOS */
