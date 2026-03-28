@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+app.use(express.static("public"));
 
 const app = express();
 app.use(express.json());
