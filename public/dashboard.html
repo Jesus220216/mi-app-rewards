@@ -1251,6 +1251,8 @@ let userRef = null;
 let referrerRef = null;
 let currentGame = null;
 let currentVideo = null;
+  let videoTime = 0;
+window.videoCompleto = false;
 
 /* USER ID */
 function getUserId(){
@@ -1341,23 +1343,27 @@ window.playGame = function(game){
 };
 
 /* COMPLETAR JUEGO (PAGA DESPUÉS) */
-window.completeGame = function(){
-  if(!currentGame) return;
+window.completeVideo = function(){
 
-  const rewards = {
-    snake: 0.5,
-    dice: 0.3
-  };
+  if(!currentVideo){
+    alert("❌ No hay video activo");
+    return;
+  }
 
-  const reward = rewards[currentGame] || 0.25;
+  if(!window.videoCompleto){
+    alert("⏳ Debes ver el video completo");
+    return;
+  }
 
-  localStorage.setItem("reward_pending", reward);
+  const today = new Date().toDateString();
 
-  alert("Ganaste $" + reward);
-  document.getElementById("gameModal").style.display = "none";
+  // 📅 CONTROL DIARIO
+  const lastWatched = localStorage.getItem("video_"+currentVideo);
 
-  location.reload();
-};
+  if(lastWatched === today){
+    alert("🚫 Ya viste este video hoy");
+    return;
+  }
 
 /* ===================== */
 /* 🎲 DADO REAL */
@@ -1417,21 +1423,38 @@ function iniciarSnake(){
 /* 🎥 VIDEOS */
 /* ===================== */
 
-window.watchVideo = function(video){
-  currentVideo = video;
+window.watchVideo = function(videoId){
+  currentVideo = videoId;
+  videoTime = 0;
+
+  const videoDurations = {
+    video1: 150, // 2:30
+    video2: 315,
+    video3: 225,
+    video4: 440,
+    video5: 240,
+    video6: 930
+  };
+
+  const duration = videoDurations[videoId] || 60;
+
   document.getElementById("videoModal").style.display = "block";
-};
 
-window.completeVideo = function(){
-  if(!currentVideo) return;
+  const timer = setInterval(()=>{
+    videoTime++;
 
-  const reward = 0.5;
+    document.getElementById("videoTimer").textContent =
+      `Tiempo: ${videoTime}s / ${duration}s`;
 
-  localStorage.setItem("reward_pending", reward);
+    if(videoTime >= duration){
+      clearInterval(timer);
 
-  alert("Ganaste $" + reward);
-  document.getElementById("videoModal").style.display = "none";
-  location.reload();
+      document.getElementById("videoTimer").textContent = "✅ Completo";
+
+      // ACTIVAR BOTÓN
+      window.videoCompleto = true;
+    }
+  },1000);
 };
 
 /* ===================== */
