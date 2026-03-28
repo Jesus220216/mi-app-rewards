@@ -56,12 +56,12 @@ async function checkDailyReset(){
 
 /* 🎥 VIDEOS */
 const videoRewards = {
-  video1: 0.10,
-  video2: 0.10,
-  video3: 0.20,
-  video4: 0.20,
-  video5: 0.20,
-  video6: 0.20,
+  video1: 0.25,
+  video2: 0.50,
+  video3: 0.35,
+  video4: 0.75,
+  video5: 1.00,
+  video6: 2.00
 };
 
 window.watchVideo = function(id){
