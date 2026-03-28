@@ -114,35 +114,78 @@ input {
 
 
 <!-- 🔥 FIREBASE -->
-<script type="module" src="login.js"></script> <!-- 👈 ESTE FALTABA -->
-<script type="module" src="app.js"></script>
+<script type="module">
+import { auth, db } from "./firebase.js";
 
-<!-- ❌ ELIMINAMOS ESTO -->
-<!-- }); -->
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-<script>
-const params = new URLSearchParams(window.location.search);
-const ref = params.get("ref");
+import {
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-if (ref) {
-  localStorage.setItem("ref_code", ref);
-}
+// ==========================
+// 🔥 CONECTAR BOTONES
+// ==========================
 
-// 👁️ MOSTRAR / OCULTAR PASSWORD
-function togglePass() {
-  const input = document.getElementById("loginPassword");
-  input.type = input.type === "password" ? "text" : "password";
-}
+// LOGIN
+document.getElementById("btnLogin").addEventListener("click", async () => {
 
-// 📋 PEGAR REFERIDO
-function pasteRef() {
-  const ref = localStorage.getItem("ref_code");
-  if (ref) {
-    document.getElementById("referralCode").value = ref;
-  } else {
-    alert("No hay referido guardado");
+  console.log("LOGIN OK 🔥");
+
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  if (!email || !password) {
+    alert("Completa los campos");
+    return;
   }
-}
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Entraste ✅");
+    window.location.href = "dashboard.html";
+  } catch (error) {
+    alert(error.message);
+  }
+
+});
+
+// REGISTER
+document.getElementById("btnRegister").addEventListener("click", async () => {
+
+  console.log("REGISTER OK 🔥");
+
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  if (!email || !password) {
+    alert("Completa los campos");
+    return;
+  }
+
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+
+    await setDoc(doc(db, "users", userCred.user.uid), {
+      email,
+      earnings: 0,
+      today: 0,
+      createdAt: new Date()
+    });
+
+    alert("Cuenta creada ✅");
+    window.location.href = "dashboard.html";
+
+  } catch (error) {
+    alert(error.message);
+  }
+
+});
+    
 </script>
 
 </body>
