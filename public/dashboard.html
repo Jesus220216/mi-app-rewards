@@ -1231,6 +1231,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
@@ -1245,16 +1246,17 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
 
+/* VARIABLES */
 let userRef = null;
 let referrerRef = null;
 let currentGame = null;
 let currentVideo = null;
 
-/* USER */
-function getUserId() {
+/* USER ID */
+function getUserId(){
   let id = localStorage.getItem("user_id");
-  if (!id) {
-    id = "user_" + Math.random().toString(36).substring(2, 10);
+  if(!id){
+    id = "user_" + Math.random().toString(36).substring(2,10);
     localStorage.setItem("user_id", id);
   }
   return id;
@@ -1263,101 +1265,167 @@ function getUserId() {
 /* REFERIDO */
 const params = new URLSearchParams(window.location.search);
 const ref = params.get("ref");
-if (ref) localStorage.setItem("ref_applied", ref);
+if(ref) localStorage.setItem("ref_applied", ref);
 
-/* INIT */
-async function initUser() {
+/* INIT USER */
+async function initUser(){
   const userId = getUserId();
-  userRef = doc(db, "users", userId);
+  userRef = doc(db,"users",userId);
 
   const referrerId = localStorage.getItem("ref_applied");
-  referrerRef = referrerId ? doc(db, "users", referrerId) : null;
+  referrerRef = referrerId ? doc(db,"users",referrerId) : null;
 
   const snap = await getDoc(userRef);
 
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      earnings: 0,
-      today: 0,
+  if(!snap.exists()){
+    await setDoc(userRef,{
+      earnings:0,
+      today:0,
       createdAt: Date.now()
     });
 
-    if (referrerRef) {
-      await updateDoc(referrerRef, {
+    if(referrerRef){
+      await updateDoc(referrerRef,{
         earnings: increment(0.20)
       });
       localStorage.removeItem("ref_applied");
     }
   }
 
-  onSnapshot(userRef, (docSnap) => {
+  onSnapshot(userRef,(docSnap)=>{
     const data = docSnap.data();
-    document.getElementById("saldo").textContent = "$" + data.earnings.toFixed(2);
-    document.getElementById("balance").textContent = "$" + data.earnings.toFixed(2);
-    document.getElementById("today").textContent = "$" + data.today.toFixed(2);
-    document.getElementById("today2").textContent = "$" + data.today.toFixed(2);
+
+    document.getElementById("saldo").textContent = "$"+data.earnings.toFixed(2);
+    document.getElementById("balance").textContent = "$"+data.earnings.toFixed(2);
+    document.getElementById("today").textContent = "$"+data.today.toFixed(2);
+    document.getElementById("today2").textContent = "$"+data.today.toFixed(2);
   });
 }
 
 await initUser();
 
-/* BONUS */
+/* BONUS SOLO SI JUGÓ */
 const reward = localStorage.getItem("reward_pending");
-if (reward) {
-  await updateDoc(userRef, {
+if(reward){
+  await updateDoc(userRef,{
     earnings: increment(parseFloat(reward)),
     today: increment(parseFloat(reward))
   });
   localStorage.removeItem("reward_pending");
 }
 
-/* JUEGOS */
-window.playGame = function(gameName) {
-  currentGame = gameName;
+/* ===================== */
+/* 🎮 JUEGOS REALES */
+/* ===================== */
+
+window.playGame = function(game){
+  currentGame = game;
 
   const container = document.getElementById("gameContent");
 
-  // 🎮 CARGAR JUEGO REAL
-  if(gameName === "snake"){
+  if(game === "snake"){
     container.innerHTML = `<canvas id="snakeGame" width="300" height="300" style="background:#000;border-radius:10px;"></canvas>`;
     iniciarSnake();
   }
 
-  if(gameName === "dice"){
+  if(game === "dice"){
     container.innerHTML = `
       <div style="text-align:center">
         <h2 id="diceResult">🎲</h2>
-        <button class="btn btn-primary" onclick="tirarDado()">Lanzar</button>
+        <button onclick="tirarDado()">Lanzar</button>
       </div>
     `;
-  }
-
-  if(gameName === "memory"){
-    container.innerHTML = `<p style="color:#fff">🧠 Encuentra las parejas (simulado)</p>`;
   }
 
   document.getElementById("gameModal").style.display = "block";
 };
 
-/* VIDEOS */
-window.watchVideo = function(video) {
+/* COMPLETAR JUEGO (PAGA DESPUÉS) */
+window.completeGame = function(){
+  if(!currentGame) return;
+
+  const rewards = {
+    snake: 0.5,
+    dice: 0.3
+  };
+
+  const reward = rewards[currentGame] || 0.25;
+
+  localStorage.setItem("reward_pending", reward);
+
+  alert("Ganaste $" + reward);
+  document.getElementById("gameModal").style.display = "none";
+
+  location.reload();
+};
+
+/* ===================== */
+/* 🎲 DADO REAL */
+/* ===================== */
+window.tirarDado = function(){
+  const num = Math.floor(Math.random()*6)+1;
+  document.getElementById("diceResult").textContent = "🎲 " + num;
+};
+
+/* ===================== */
+/* 🐍 SNAKE REAL */
+/* ===================== */
+function iniciarSnake(){
+  const canvas = document.getElementById("snakeGame");
+  const ctx = canvas.getContext("2d");
+
+  let snake = [{x:150,y:150}];
+  let food = {x:100,y:100};
+  let dx = 10;
+  let dy = 0;
+
+  document.addEventListener("keydown", e=>{
+    if(e.key==="ArrowUp"){dx=0;dy=-10;}
+    if(e.key==="ArrowDown"){dx=0;dy=10;}
+    if(e.key==="ArrowLeft"){dx=-10;dy=0;}
+    if(e.key==="ArrowRight"){dx=10;dy=0;}
+  });
+
+  function draw(){
+    ctx.clearRect(0,0,300,300);
+
+    snake.forEach(s=>{
+      ctx.fillStyle="lime";
+      ctx.fillRect(s.x,s.y,10,10);
+    });
+
+    ctx.fillStyle="red";
+    ctx.fillRect(food.x,food.y,10,10);
+
+    let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+    snake.unshift(head);
+
+    if(head.x===food.x && head.y===food.y){
+      food = {
+        x: Math.floor(Math.random()*30)*10,
+        y: Math.floor(Math.random()*30)*10
+      };
+    } else {
+      snake.pop();
+    }
+  }
+
+  setInterval(draw,100);
+}
+
+/* ===================== */
+/* 🎥 VIDEOS */
+/* ===================== */
+
+window.watchVideo = function(video){
   currentVideo = video;
   document.getElementById("videoModal").style.display = "block";
 };
 
-window.completeVideo = function() {
-  if (!currentVideo) return;
+window.completeVideo = function(){
+  if(!currentVideo) return;
 
-  const rewards = {
-    video1: 0.25,
-    video2: 0.5,
-    video3: 0.35,
-    video4: 0.75,
-    video5: 1,
-    video6: 2
-  };
-
-  const reward = rewards[currentVideo] || 0.25;
+  const reward = 0.5;
 
   localStorage.setItem("reward_pending", reward);
 
@@ -1366,45 +1434,29 @@ window.completeVideo = function() {
   location.reload();
 };
 
-/* ENCUESTAS */
-window.abrirEncuestas = function(){
-  const user_id = getUserId();
-  const hash = CryptoJS.MD5(user_id + "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS").toString();
-
-  const url = `https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${user_id}&secure_hash=${hash}`;
-
-  document.body.innerHTML = `
-    <button onclick="location.reload()">⬅ Volver</button>
-    <iframe src="${url}" style="width:100%;height:90vh;border:none;"></iframe>
-  `;
-};
-
-/* REFERIDO */
+/* ===================== */
+/* 🔗 REFERIDOS */
+/* ===================== */
 window.copiarRef = function(){
   const link = window.location.origin + "?ref=" + getUserId();
   navigator.clipboard.writeText(link);
   alert("Copiado ✅");
 };
 
-/* RETIRO */
+/* ===================== */
+/* 💳 RETIRO */
+/* ===================== */
 window.retirar = function(){
   alert("Solicitud enviada");
 };
 
-/* LOGOUT */
+/* ===================== */
+/* 🚪 LOGOUT */
+/* ===================== */
 window.logout = async function(){
   await signOut(auth);
   localStorage.clear();
   window.location.href = "index.html";
-};
-
-/* MODALES */
-window.onclick = function(event) {
-  const gameModal = document.getElementById('gameModal');
-  const videoModal = document.getElementById('videoModal');
-
-  if (event.target == gameModal) gameModal.style.display = 'none';
-  if (event.target == videoModal) videoModal.style.display = 'none';
 };
 </script>
 
