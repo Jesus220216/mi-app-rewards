@@ -1,38 +1,27 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { db, auth } from "./firebase.js";
+
 import {
-  getFirestore,
   doc,
   onSnapshot,
   updateDoc,
   increment,
   getDoc,
   setDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 FIREBASE CONFIG
-const app = initializeApp({
-  apiKey: "AIzaSyD1w_66STxqf5iMVneB8DgLnpFwS8RGy3g",
-  authDomain: "rutarizador-v12.firebaseapp.com",
-  projectId: "rutarizador-v12"
-});
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const db = getFirestore(app);
+// 🔐 USUARIO REAL
+onAuthStateChanged(auth, async (user) => {
 
-// 👤 USER ID
-function getUserId() {
-  let id = localStorage.getItem("cpx_user_id");
-  if (!id) {
-    id = "srv-" + Math.random().toString(36).substring(2, 15);
-    localStorage.setItem("cpx_user_id", id);
+  if (!user) {
+    window.location.href = "index.html";
+    return;
   }
-  return id;
-}
 
-const userId = getUserId();
-const userRef = doc(db, "users", userId);
+  const userRef = doc(db, "users", user.uid);
 
-// 🔥 INIT USER (async seguro)
-async function initUser() {
+  // 🔥 CREAR SI NO EXISTE
   const snap = await getDoc(userRef);
 
   if (!snap.exists()) {
@@ -42,117 +31,45 @@ async function initUser() {
       createdAt: new Date()
     });
   }
-}
 
-await initUser();
+  // 🔗 REFERIDO
+  const refInput = document.getElementById("refLink");
+  if (refInput) {
+    refInput.value = `${window.location.origin}?ref=${user.uid}`;
+  }
 
-// 🔗 REFERIDO
-document.getElementById("refLink").value =
-  `${window.location.origin}?ref=${userId}`;
+  // 🔄 REALTIME
+  onSnapshot(userRef, (snap) => {
+    if (!snap.exists()) return;
 
-// ============================
-// 🚀 FUNCIONES GLOBALES
-// ============================
-
-window.abrirEncuestas = function () {
-  const hash = CryptoJS.MD5(userId + "Rg9JpjEO4PNU1CYZRx6owtZkypREstSS").toString();
-
-  const url = `https://offers.cpx-research.com/index.php?app_id=32070&ext_user_id=${userId}&secure_hash=${hash}`;
-
-  document.body.innerHTML = `
-    <button onclick="location.reload()">⬅ Volver</button>
-    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
-  `;
-};
-
-window.abrirOfertas = function () {
-  document.body.innerHTML = `
-    <button onclick="location.reload()">⬅ Volver</button>
-    <iframe src="https://wall.adgate.com/?user_id=${userId}" style="width:100%;height:100vh;border:none;"></iframe>
-  `;
-};
-
-window.abrirJuego = function (nombre) {
-  window.location.href = "game-" + nombre + ".html";
-};
-
-window.copiarRef = function () {
-  navigator.clipboard.writeText(document.getElementById("refLink").value);
-  showToast("Copiado 🚀");
-};
-
-window.retirar = function () {
-  showToast("Solicitud enviada 💰");
-};
-
-window.logout = function () {
-  localStorage.removeItem("cpx_user_id");
-  window.location.href = "index.html";
-};
-
-// ============================
-// 🔄 REALTIME FIREBASE
-// ============================
-
-onSnapshot(userRef, (snap) => {
-  if (snap.exists()) {
     const data = snap.data();
 
     const earnings = (data.earnings || 0).toFixed(2);
     const today = (data.today || 0).toFixed(2);
 
-    document.getElementById("saldo").innerText = "$" + earnings;
-    document.getElementById("today").innerText = "$" + today;
-    document.getElementById("today2").innerText = "$" + today;
-    document.getElementById("total").innerText = "$" + earnings;
-
-    showToast("+" + today + " 💰");
-  }
-});
-
-// ============================
-// 🎁 BONUS DIARIO
-// ============================
-
-const todayDate = new Date().toDateString();
-const last = localStorage.getItem("daily_bonus");
-
-if (last !== todayDate) {
-  await updateDoc(userRef, {
-    earnings: increment(0.50),
-    today: increment(0.50)
+    document.getElementById("saldo")?.innerText = "$" + earnings;
+    document.getElementById("today")?.innerText = "$" + today;
+    document.getElementById("today2")?.innerText = "$" + today;
+    document.getElementById("total")?.innerText = "$" + earnings;
   });
 
-  localStorage.setItem("daily_bonus", todayDate);
-}
+  // 🎁 BONUS DIARIO
+  const todayDate = new Date().toDateString();
+  const last = localStorage.getItem("daily_bonus");
 
-// ============================
-// 🔔 TOAST NOTIFICACIÓN
-// ============================
+  if (last !== todayDate) {
+    await updateDoc(userRef, {
+      earnings: increment(0.5),
+      today: increment(0.5)
+    });
 
-function showToast(msg) {
-  let t = document.getElementById("toast");
-
-  if (!t) {
-    t = document.createElement("div");
-    t.id = "toast";
-    t.style.position = "fixed";
-    t.style.bottom = "20px";
-    t.style.right = "20px";
-    t.style.background = "#00ff88";
-    t.style.color = "#000";
-    t.style.padding = "12px 18px";
-    t.style.borderRadius = "12px";
-    t.style.boxShadow = "0 0 15px rgba(0,255,136,0.5)";
-    t.style.opacity = "0";
-    t.style.transition = "0.3s";
-    document.body.appendChild(t);
+    localStorage.setItem("daily_bonus", todayDate);
   }
 
-  t.innerText = msg;
-  t.style.opacity = "1";
+});
 
-  setTimeout(() => {
-    t.style.opacity = "0";
-  }, 2500);
-}
+// 🚪 LOGOUT
+window.logout = function () {
+  auth.signOut();
+  window.location.href = "index.html";
+};
