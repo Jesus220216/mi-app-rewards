@@ -1,51 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Admin</title>
+  <title>Admin Panel</title>
 </head>
+<body style="background:#111;color:#fff;font-family:sans-serif">
 
-<body style="background:#0a0e27;color:white;font-family:sans-serif">
+<h1>📊 Admin Panel</h1>
 
-<h1>📊 Usuarios en tiempo real</h1>
+<button onclick="loadWithdrawals()">Ver Retiros</button>
 
-<h1>Panel Admin</h1>
-<div id="users"></div>
+<pre id="data"></pre>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
-  authDomain: "mi-app-rewards-rd.firebaseapp.com",
-  projectId: "mi-app-rewards-rd",
-  storageBucket: "mi-app-rewards-rd.firebasestorage.app",
-  messagingSenderId: "862164914639",
-  appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
-  measurementId: "G-9BMKB6QNV2"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const usersDiv = document.getElementById("users");
-
-onSnapshot(collection(db, "users"), (snapshot)=>{
-  usersDiv.innerHTML = "";
-
-  snapshot.forEach(doc=>{
-    const d = doc.data();
-
-    usersDiv.innerHTML += `
-      <div style="border:1px solid #4caf50;margin:10px;padding:10px">
-        🆔 ${doc.id}<br>
-        💰 $${d.earnings || 0}<br>
-        📅 Hoy: $${d.today || 0}
-      </div>
-    `;
+<script>
+function loadWithdrawals(){
+  fetch("http://localhost:3000/admin/withdrawals")
+  .then(res=>res.json())
+  .then(data=>{
+    document.getElementById("data").textContent =
+      JSON.stringify(data,null,2);
   });
-});
+}
 </script>
 
 </body>
