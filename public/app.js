@@ -1,3 +1,5 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "./firebase.js";
 
 /* USER ID */
