@@ -1226,27 +1226,13 @@ window.onclick = function(event) {
 <!-- FIREBASE - SISTEMA DE REFERIDOS PRO -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-  <!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// 🔥 CONFIG
-const app = initializeApp({
+/* FIREBASE */
+const firebaseConfig = {
   apiKey: "AIzaSyCOm3jbBL63R_XQjiDBi27WQJCr9lVGakI",
   authDomain: "mi-app-rewards-rd.firebaseapp.com",
   projectId: "mi-app-rewards-rd",
@@ -1254,151 +1240,191 @@ const app = initializeApp({
   messagingSenderId: "862164914639",
   appId: "1:862164914639:web:0a2a0ba4beab0dac0cc2ba",
   measurementId: "G-9BMKB6QNV2"
-});
+};
 
-const auth = getAuth(app);
-
-let currentUser = null;
-
-onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-});
-    
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth();
 
-// 👁 VER PASSWORD
-window.togglePass = function(){
-  const input = document.getElementById("loginPassword");
-  input.type = input.type === "password" ? "text" : "password";
-};
+/* VARIABLES */
+let userRef = null;
+let currentVideo = null;
+let videoTime = 0;
+let videoCompleto = false;
+let tabActiva = true;
 
-// 📋 REFERIDO
-window.pasteRef = function(){
-  const ref = localStorage.getItem("referrer_id");
-  if(ref){
-    document.getElementById("referralCode").value = ref;
-    alert("Referido aplicado ✅");
+/* USER ID */
+function getUserId(){
+  let id = localStorage.getItem("user_id");
+  if(!id){
+    id = "user_" + Math.random().toString(36).substring(2,10);
+    localStorage.setItem("user_id", id);
   }
-};
-
-// 🔐 LOGIN
-window.login = async function(){
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-
-  try{
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // 🔥 asegurar que existe en Firestore
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
-
-    if (!snap.exists()){
-      await setDoc(userRef, {
-        email: user.email,
-        earnings: 0,
-        createdAt: new Date()
-      });
-    }
-
-    // ❌ QUITAMOS EL ALERT
-    // alert("Login correcto ✅");
-
-    localStorage.setItem("uid", user.uid);
-
-    // ✅ REDIRECCIÓN DIRECTA
-    window.location.href = "dashboard.html";
-
-  }catch(e){
-    console.error(e);
-    alert(e.message);
-  }
-};
-// 🆕 REGISTER
-window.register = async function(){
-  console.log("REGISTER CLICK");
-
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-
-  if (!email || !password){
-    alert("Completa los campos");
-    return;
-  }
-
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    try {
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        earnings: 0,
-        today: 0,
-        xp: 0,
-        level: 0,
-        referredBy: null,
-        fraudScore: 0,
-        pendingWithdrawal: 0,
-        createdAt: new Date()
-      });
-
-      console.log("✅ Usuario guardado en Firestore");
-
-    } catch (fireError) {
-      console.error("🔥 ERROR FIRESTORE:", fireError);
-      alert("Error guardando usuario en DB");
-    }
-
-    localStorage.setItem("uid", user.uid);
-    window.location.href = "dashboard.html";
-
-  } catch(err){
-    console.error("🔥 ERROR AUTH:", err);
-    alert(err.message);
-  }
-};
-  window.bonus = async function(){
-  const user = currentUser;
-
-  if (!user){
-    alert("Debes iniciar sesión");
-    return;
-  }
-
-  try{
-    const res = await fetch("/daily-bonus", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ user_id: user.uid })
-    });
-
-    const text = await res.text();
-    alert(text);
-
-  }catch(e){
-    console.error(e);
-    alert("Error en bonus");
-  }
-};
-
-
-
-// 🎯 REFERIDO URL
-const params = new URLSearchParams(window.location.search);
-const ref = params.get("ref");
-if(ref){
-  localStorage.setItem("referrer_id", ref);
-  document.getElementById("referralCode").value = ref;
+  return id;
 }
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("btnLogin").addEventListener("click", window.login);
-  document.getElementById("btnRegister").addEventListener("click", window.register);
-  document.getElementById("btnBonus").addEventListener("click", window.bonus);
+
+/* INIT USER */
+async function initUser(){
+  const userId = getUserId();
+  userRef = doc(db,"users",userId);
+
+  const snap = await getDoc(userRef);
+
+  if(!snap.exists()){
+    await setDoc(userRef,{
+      earnings:0,
+      today:0
+    });
+  }
+
+  onSnapshot(userRef,(docSnap)=>{
+    const data = docSnap.data();
+
+    document.getElementById("saldo").textContent = "$"+data.earnings.toFixed(2);
+    document.getElementById("balance").textContent = "$"+data.earnings.toFixed(2);
+    document.getElementById("today").textContent = "$"+data.today.toFixed(2);
+    document.getElementById("today2").textContent = "$"+data.today.toFixed(2);
+  });
+}
+
+await initUser();
+
+/* ===================== */
+/* 🎥 VIDEOS PRO */
+/* ===================== */
+
+const videoData = {
+  video1: { id: "dQw4w9WgXcQ", reward: 0.25, duration: 150 },
+  video2: { id: "3JZ_D3ELwOQ", reward: 0.50, duration: 315 },
+  video3: { id: "LXb3EKWsInQ", reward: 0.35, duration: 225 },
+  video4: { id: "ysz5S6PUM-U", reward: 0.75, duration: 440 },
+  video5: { id: "hY7m5jjJ9mM", reward: 1.00, duration: 240 },
+  video6: { id: "aqz-KE-bpKQ", reward: 2.00, duration: 930 }
+};
+
+/* ABRIR VIDEO */
+window.watchVideo = function(videoId){
+  currentVideo = videoId;
+  videoTime = 0;
+  videoCompleto = false;
+
+  const video = videoData[videoId];
+
+  document.getElementById("videoContent").innerHTML = `
+    <iframe 
+      id="ytplayer"
+      width="100%" 
+      height="300"
+      src="https://www.youtube.com/embed/${video.id}?enablejsapi=1&controls=0&disablekb=1&modestbranding=1&rel=0"
+      frameborder="0"
+      allow="autoplay"
+    ></iframe>
+
+    <p id="videoTimer" style="margin-top:10px;color:#81c784;font-weight:bold;">
+      Tiempo: 0 / ${video.duration}s
+    </p>
+  `;
+
+  document.getElementById("videoModal").style.display = "block";
+
+  const timer = setInterval(()=>{
+    if(!tabActiva){
+      clearInterval(timer);
+      alert("🚫 No cambies de pestaña");
+      return;
+    }
+
+    videoTime++;
+
+    document.getElementById("videoTimer").textContent =
+      `Tiempo: ${videoTime} / ${video.duration}s`;
+
+    if(videoTime >= video.duration){
+      clearInterval(timer);
+      videoCompleto = true;
+      document.getElementById("videoTimer").textContent = "✅ Video completado";
+    }
+
+  },1000);
+};
+
+/* COMPLETAR VIDEO */
+window.completeVideo = async function(){
+
+  if(!currentVideo){
+    alert("❌ No hay video activo");
+    return;
+  }
+
+  if(!videoCompleto){
+    alert("⏳ Debes ver el video completo");
+    return;
+  }
+
+  const video = videoData[currentVideo];
+
+  const today = new Date().toDateString();
+
+  /* 🚫 NO REPETIR */
+  if(localStorage.getItem("watched_"+currentVideo) === today){
+    alert("🚫 Ya viste este video hoy");
+    return;
+  }
+
+  /* 💰 LÍMITE DIARIO */
+  const earnedToday = parseFloat(localStorage.getItem("earned_today") || 0);
+
+  if(earnedToday + video.reward > 5){
+    alert("🚫 Límite diario alcanzado ($5)");
+    return;
+  }
+
+  /* GUARDAR */
+  localStorage.setItem("watched_"+currentVideo, today);
+  localStorage.setItem("earned_today", earnedToday + video.reward);
+
+  await updateDoc(userRef,{
+    earnings: increment(video.reward),
+    today: increment(video.reward)
+  });
+
+  alert("✅ Ganaste $" + video.reward);
+
+  document.getElementById("videoModal").style.display = "none";
+};
+
+/* ===================== */
+/* 🛑 ANTI TRAMPA */
+/* ===================== */
+document.addEventListener("visibilitychange", ()=>{
+  tabActiva = !document.hidden;
 });
+
+/* ===================== */
+/* 🎮 JUEGOS (SIMPLE) */
+/* ===================== */
+window.playGame = function(game){
+  alert("Juego: " + game);
+};
+
+/* ===================== */
+/* 🔗 REFERIDOS */
+/* ===================== */
+window.copiarRef = function(){
+  const link = window.location.origin + "?ref=" + getUserId();
+  navigator.clipboard.writeText(link);
+  alert("Copiado ✅");
+};
+
+/* ===================== */
+/* 🚪 LOGOUT */
+/* ===================== */
+window.logout = async function(){
+  await signOut(auth);
+  localStorage.clear();
+  window.location.href = "index.html";
+};
+
 </script>
 
 </body>
