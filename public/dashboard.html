@@ -742,7 +742,7 @@ body {
 
   <!-- TOP CARDS -->
   <div class="cards-grid">
-    <div class="card" onclick="abrirJuego('ruleta')">
+    <div class="card" onclick="abrirJuego('snake')">
       <div class="card-icon">🎮</div>
       <h3>Jugar juegos</h3>
       <p>$0.50 - $120</p>
@@ -1001,7 +1001,7 @@ function getRef() {
 }
 
 const ref = getRef();
-const myId = getUserId();
+
 
 // Guardar referido SOLO la primera vez
 if (ref && ref !== myId && !localStorage.getItem("ref_applied")) {
@@ -1021,7 +1021,7 @@ function abrirEncuestas() {
 }
 
 // JUEGOS
-function playGame(gameName) {
+
   currentGame = gameName;
   const gameNames = {
     'snake': '🐍 Snake',
@@ -1048,7 +1048,7 @@ function closeGame() {
   currentGame = null;
 }
 
-function completeGame() {
+
   if (currentGame) {
     const rewards = {
       'snake': 0.50,
@@ -1130,8 +1130,41 @@ function closeVideo() {
   videoTime = 0;
 }
 
-function completeVideo() {
-  if (currentVideo) {
+// VIDEOS
+function watchVideo(videoId){
+  currentVideo = videoId;
+  videoTime = 0;
+
+  const videoNames = {
+    'video1': 'Tutorial Rápido',
+    'video2': 'Consejos de Ahorro',
+    'video3': 'Cómo Ganar Más',
+    'video4': 'Historias de Éxito',
+    'video5': 'Promoción Especial',
+    'video6': 'Webinar Exclusivo'
+  };
+
+  document.getElementById('videoTitle').textContent = videoNames[videoId] || 'Video';
+  document.getElementById('videoModal').style.display = 'block';
+
+  const timer = setInterval(()=>{
+    videoTime++;
+    document.getElementById('videoTimer').textContent = `Tiempo: ${videoTime}s`;
+
+    if(videoTime >= 10){
+      clearInterval(timer);
+    }
+  },1000);
+}
+
+function closeVideo(){
+  document.getElementById('videoModal').style.display = 'none';
+  currentVideo = null;
+}
+
+function completeVideo(){
+  if(currentVideo){
+
     const rewards = {
       'video1': 0.25,
       'video2': 0.50,
@@ -1140,13 +1173,16 @@ function completeVideo() {
       'video5': 1.00,
       'video6': 2.00
     };
-    
+
     const reward = rewards[currentVideo] || 0.25;
-    alert(`✅ ¡Video visto! Has ganado $${reward.toFixed(2)}`);
+
+    localStorage.setItem("reward_pending", reward);
+
+    alert(`✅ Ganaste $${reward}`);
     closeVideo();
+    location.reload();
   }
 }
-
 // REFERIDOS
 const myId = getUserId();
 document.getElementById("refLink").value = `${window.location.origin}?ref=${myId}`;
